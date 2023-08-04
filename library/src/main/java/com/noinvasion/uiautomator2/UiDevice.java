@@ -1,4 +1,4 @@
-package com.noinvasion.autotest.uiautomator2;
+package com.noinvasion.uiautomator2;
 
 
 import android.accessibilityservice.AccessibilityServiceInfo;
@@ -255,7 +255,6 @@ public class UiDevice implements Searchable {
      * @return a Point containing the display size in dp
      */
     public Point getDisplaySizeDp() {
-        Tracer.trace();
         Display display = getDisplayById();
         Point p = new Point();
         display.getRealSize(p);
@@ -278,7 +277,6 @@ public class UiDevice implements Searchable {
      * @since API Level 17
      */
     public String getProductName() {
-        Tracer.trace();
         return Build.PRODUCT;
     }
 
@@ -298,7 +296,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public String getLastTraversedText() {
-        Tracer.trace();
         return getQueryController().getLastTraversedText();
     }
 
@@ -309,7 +306,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public void clearLastTraversedText() {
-        Tracer.trace();
         getQueryController().clearLastTraversedText();
     }
 
@@ -320,8 +316,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressMenu() {
-        Tracer.trace();
-        waitForIdle();
         return getInteractionController().sendKeyAndWaitForEvent(
                 KeyEvent.KEYCODE_MENU, 0, AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
                 KEY_PRESS_EVENT_TIMEOUT);
@@ -334,8 +328,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressBack() {
-        Tracer.trace();
-        waitForIdle();
         return getInteractionController().sendKeyAndWaitForEvent(
                 KeyEvent.KEYCODE_BACK, 0, AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
                 KEY_PRESS_EVENT_TIMEOUT);
@@ -348,8 +340,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressHome() {
-        Tracer.trace();
-        waitForIdle();
         return getInteractionController().sendKeyAndWaitForEvent(
                 KeyEvent.KEYCODE_HOME, 0, AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
                 KEY_PRESS_EVENT_TIMEOUT);
@@ -362,7 +352,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressSearch() {
-        Tracer.trace();
         return pressKeyCode(KeyEvent.KEYCODE_SEARCH);
     }
 
@@ -373,7 +362,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressDPadCenter() {
-        Tracer.trace();
         return pressKeyCode(KeyEvent.KEYCODE_DPAD_CENTER);
     }
 
@@ -384,7 +372,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressDPadDown() {
-        Tracer.trace();
         return pressKeyCode(KeyEvent.KEYCODE_DPAD_DOWN);
     }
 
@@ -395,7 +382,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressDPadUp() {
-        Tracer.trace();
         return pressKeyCode(KeyEvent.KEYCODE_DPAD_UP);
     }
 
@@ -406,7 +392,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressDPadLeft() {
-        Tracer.trace();
         return pressKeyCode(KeyEvent.KEYCODE_DPAD_LEFT);
     }
 
@@ -417,7 +402,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressDPadRight() {
-        Tracer.trace();
         return pressKeyCode(KeyEvent.KEYCODE_DPAD_RIGHT);
     }
 
@@ -428,7 +412,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressDelete() {
-        Tracer.trace();
         return pressKeyCode(KeyEvent.KEYCODE_DEL);
     }
 
@@ -439,7 +422,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressEnter() {
-        Tracer.trace();
         return pressKeyCode(KeyEvent.KEYCODE_ENTER);
     }
 
@@ -452,8 +434,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressKeyCode(int keyCode) {
-        Tracer.trace(keyCode);
-        waitForIdle();
         return getInteractionController().sendKey(keyCode, 0);
     }
 
@@ -468,8 +448,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressKeyCode(int keyCode, int metaState) {
-        Tracer.trace(keyCode, metaState);
-        waitForIdle();
         return getInteractionController().sendKey(keyCode, metaState);
     }
 
@@ -481,8 +459,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressRecentApps() throws RemoteException {
-        Tracer.trace();
-        waitForIdle();
         return getInteractionController().toggleRecentApps();
     }
 
@@ -493,8 +469,6 @@ public class UiDevice implements Searchable {
      * @since API Level 18
      */
     public boolean openNotification() {
-        Tracer.trace();
-        waitForIdle();
         return getInteractionController().openNotification();
     }
 
@@ -505,8 +479,6 @@ public class UiDevice implements Searchable {
      * @since API Level 18
      */
     public boolean openQuickSettings() {
-        Tracer.trace();
-        waitForIdle();
         return getInteractionController().openQuickSettings();
     }
 
@@ -518,7 +490,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public int getDisplayWidth() {
-        Tracer.trace();
         return getDisplaySize().x;
     }
 
@@ -530,7 +501,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public int getDisplayHeight() {
-        Tracer.trace();
         return getDisplaySize().y;
     }
 
@@ -543,7 +513,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean click(int x, int y) {
-        Tracer.trace(x, y);
         if (x >= getDisplayWidth() || y >= getDisplayHeight()) {
             return (false);
         }
@@ -564,7 +533,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean swipe(int startX, int startY, int endX, int endY, int steps) {
-        Tracer.trace(startX, startY, endX, endY, steps);
         return getInteractionController()
                 .swipe(startX, startY, endX, endY, steps);
     }
@@ -585,7 +553,6 @@ public class UiDevice implements Searchable {
      * @since API Level 18
      */
     public boolean drag(int startX, int startY, int endX, int endY, int steps) {
-        Tracer.trace(startX, startY, endX, endY, steps);
         return getInteractionController()
                 .swipe(startX, startY, endX, endY, steps, true);
     }
@@ -600,30 +567,7 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean swipe(Point[] segments, int segmentSteps) {
-        Tracer.trace(segments, segmentSteps);
         return getInteractionController().swipe(segments, segmentSteps);
-    }
-
-    /**
-     * Waits for the current application to idle.
-     * Default wait timeout is 10 seconds
-     *
-     * @since API Level 16
-     */
-    public void waitForIdle() {
-        Tracer.trace();
-        getQueryController().waitForIdle();
-    }
-
-    /**
-     * Waits for the current application to idle.
-     *
-     * @param timeout in milliseconds
-     * @since API Level 16
-     */
-    public void waitForIdle(long timeout) {
-        Tracer.trace(timeout);
-        getQueryController().waitForIdle(timeout);
     }
 
     /**
@@ -635,7 +579,6 @@ public class UiDevice implements Searchable {
      */
     @Deprecated
     public String getCurrentActivityName() {
-        Tracer.trace();
         return getQueryController().getCurrentActivityName();
     }
 
@@ -646,7 +589,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public String getCurrentPackageName() {
-        Tracer.trace();
         return getQueryController().getCurrentPackageName();
     }
 
@@ -659,8 +601,6 @@ public class UiDevice implements Searchable {
      * @since API Level 17
      */
     public boolean isNaturalOrientation() {
-        Tracer.trace();
-        waitForIdle();
         int ret = getDisplayRotation();
         return ret == UiAutomation.ROTATION_FREEZE_0 ||
                 ret == UiAutomation.ROTATION_FREEZE_180;
@@ -672,8 +612,6 @@ public class UiDevice implements Searchable {
      * @since API Level 17
      */
     public int getDisplayRotation() {
-        Tracer.trace();
-        waitForIdle();
         return getDisplayById().getRotation();
     }
 
@@ -685,7 +623,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public void freezeRotation() throws RemoteException {
-        Tracer.trace();
         getInteractionController().freezeRotation();
     }
 
@@ -697,7 +634,6 @@ public class UiDevice implements Searchable {
      * @throws RemoteException
      */
     public void unfreezeRotation() throws RemoteException {
-        Tracer.trace();
         getInteractionController().unfreezeRotation();
     }
 
@@ -712,9 +648,8 @@ public class UiDevice implements Searchable {
      * @since API Level 17
      */
     public void setOrientationLeft() throws RemoteException {
-        Tracer.trace();
         getInteractionController().setRotationLeft();
-        waitForIdle(); // we don't need to check for idle on entry for this. We'll sync on exit
+        // we don't need to check for idle on entry for this. We'll sync on exit
     }
 
     /**
@@ -728,9 +663,8 @@ public class UiDevice implements Searchable {
      * @since API Level 17
      */
     public void setOrientationRight() throws RemoteException {
-        Tracer.trace();
         getInteractionController().setRotationRight();
-        waitForIdle(); // we don't need to check for idle on entry for this. We'll sync on exit
+        // we don't need to check for idle on entry for this. We'll sync on exit
     }
 
     /**
@@ -744,9 +678,8 @@ public class UiDevice implements Searchable {
      * @since API Level 17
      */
     public void setOrientationNatural() throws RemoteException {
-        Tracer.trace();
         getInteractionController().setRotationNatural();
-        waitForIdle(); // we don't need to check for idle on entry for this. We'll sync on exit
+        // we don't need to check for idle on entry for this. We'll sync on exit
     }
 
     /**
@@ -760,7 +693,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public void wakeUp() throws RemoteException {
-        Tracer.trace();
         if (getInteractionController().wakeDevice()) {
             // sync delay to allow the window manager to start accepting input
             // after the device is awakened.
@@ -776,7 +708,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean isScreenOn() throws RemoteException {
-        Tracer.trace();
         return getInteractionController().isScreenOn();
     }
 
@@ -788,7 +719,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public void sleep() throws RemoteException {
-        Tracer.trace();
         getInteractionController().sleepDevice();
     }
 
@@ -816,7 +746,6 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean waitForWindowUpdate(final String packageName, long timeout) {
-        Tracer.trace(packageName, timeout);
         if (packageName != null) {
             if (!packageName.equals(getCurrentPackageName())) {
                 return false;
@@ -858,7 +787,6 @@ public class UiDevice implements Searchable {
      * @since API Level 17
      */
     public boolean takeScreenshot(File storePath) {
-        Tracer.trace(storePath);
         return takeScreenshot(storePath, 1.0f, 90);
     }
 
@@ -874,7 +802,6 @@ public class UiDevice implements Searchable {
      * @since API Level 17
      */
     public boolean takeScreenshot(File storePath, float scale, int quality) {
-        Tracer.trace(storePath, scale, quality);
         Bitmap screenshot = uiAutomation.takeScreenshot();
         if (screenshot == null) {
             return false;

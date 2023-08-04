@@ -1,4 +1,4 @@
-package com.noinvasion.autotest.uiautomator2;
+package com.noinvasion.uiautomator2;
 
 
 import android.graphics.Point;
@@ -696,7 +696,6 @@ public class UiObject2 implements Searchable {
             throw new IllegalStateException("This object has already been recycled");
         }
 
-        getDevice().waitForIdle();
         if (!mCachedNode.refresh()) {
 
             if (!mCachedNode.refresh()) {

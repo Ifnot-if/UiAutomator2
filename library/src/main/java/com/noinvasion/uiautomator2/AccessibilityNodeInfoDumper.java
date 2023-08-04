@@ -1,6 +1,6 @@
-package com.noinvasion.autotest.uiautomator2;
+package com.noinvasion.uiautomator2;
 
-import static com.noinvasion.autotest.uiautomator2.AccessibilityNodeInfoHelper.getVisibleBoundsInScreen;
+import static com.noinvasion.uiautomator2.AccessibilityNodeInfoHelper.getVisibleBoundsInScreen;
 
 import android.annotation.SuppressLint;
 import android.graphics.Point;

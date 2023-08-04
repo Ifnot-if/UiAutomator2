@@ -1,4 +1,4 @@
-package com.noinvasion.autotest.uiautomator2;
+package com.noinvasion.uiautomator2;
 
 import android.annotation.SuppressLint;
 import android.app.UiAutomation;

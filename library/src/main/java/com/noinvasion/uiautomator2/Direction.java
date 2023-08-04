@@ -1,4 +1,4 @@
-package com.noinvasion.autotest.uiautomator2;
+package com.noinvasion.uiautomator2;
 
 /**
  * An enumeration used to specify the primary direction of certain gestures.

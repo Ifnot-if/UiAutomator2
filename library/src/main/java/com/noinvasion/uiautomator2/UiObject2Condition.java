@@ -1,4 +1,4 @@
-package com.noinvasion.autotest.uiautomator2;
+package com.noinvasion.uiautomator2;
 
 /**
  * A {@link UiObject2Condition} is a condition which is satisfied when a {@link UiObject2} is in a

@@ -1,4 +1,4 @@
-package com.noinvasion.autotest.uiautomator2;
+package com.noinvasion.uiautomator2;
 
 /**
  * A {@link StaleObjectException} exception is thrown when a {@link UiObject2} is used after the

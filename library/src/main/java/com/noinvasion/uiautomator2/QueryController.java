@@ -1,4 +1,4 @@
-package com.noinvasion.autotest.uiautomator2;
+package com.noinvasion.uiautomator2;
 
 
 import android.app.UiAutomation;
@@ -78,7 +78,7 @@ class QueryController {
      * this event is using a DPad arrows to focus on UI elements.
      */
     public String getLastTraversedText() {
-        waitForIdle();
+        
         synchronized (mLock) {
             if (mLastTraversedText.length() > 0) {
                 return mLastTraversedText;
@@ -92,7 +92,7 @@ class QueryController {
      * event
      */
     public void clearLastTraversedText() {
-        waitForIdle();
+        
         synchronized (mLock) {
             mLastTraversedText = "";
         }
@@ -135,7 +135,7 @@ class QueryController {
      */
     @Deprecated
     public String getCurrentActivityName() {
-        waitForIdle();
+        
         synchronized (mLock) {
             return mLastActivityName;
         }
@@ -147,7 +147,7 @@ class QueryController {
      * @return String name of package
      */
     public String getCurrentPackageName() {
-        waitForIdle();
+        
         AccessibilityNodeInfo rootNode = getRootNode();
         if (rootNode == null) {
             return null;
