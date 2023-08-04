@@ -18,9 +18,9 @@ import android.view.MotionEvent;
  * @since API Level 18
  */
 public final class Configurator {
-    private long mWaitForIdleTimeout = 10 * 1000;
-    private long mWaitForSelector = 10 * 1000;
-    private long mWaitForActionAcknowledgment = 3 * 1000;
+    private long mWaitForIdleTimeout = 0;
+    private long mWaitForSelector = 0;
+    private long mWaitForActionAcknowledgment = 500;
 
     // The events for a scroll typically complete even before touchUp occurs.
     // This short timeout to make sure we get the very last in cases where the above isn't true.

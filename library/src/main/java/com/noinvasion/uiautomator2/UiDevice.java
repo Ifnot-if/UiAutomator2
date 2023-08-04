@@ -89,22 +89,23 @@ public class UiDevice implements Searchable {
      * Private constructor. Clients should use {@link UiDevice}.
      */
     UiDevice(UiAutomation uiAutomation) {
+
+        // Enable multi-window support for API level 21 and up
+        // Subscribe to window information
+        AccessibilityServiceInfo info = uiAutomation.getServiceInfo();
+        info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+                | AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
+                | AccessibilityServiceInfo.FLAG_REQUEST_ENHANCED_WEB_ACCESSIBILITY
+                | AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+                | AccessibilityServiceInfo.DEFAULT;
+
+        uiAutomation.setServiceInfo(info);
+
         this.uiAutomation = uiAutomation;
         mQueryController = new QueryController(uiAutomation);
         mInteractionController = new InteractionController(uiAutomation);
         this.mDisplayManager = (DisplayManager) Workarounds.getInstance().getSystemContext().getSystemService(Context.DISPLAY_SERVICE);
-        // Enable multi-window support for API level 21 and up
-        if (UiDevice.API_LEVEL_ACTUAL >= Build.VERSION_CODES.LOLLIPOP) {
-            // Subscribe to window information
-            AccessibilityServiceInfo info = getUiAutomation().getServiceInfo();
-            info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
-                    | AccessibilityServiceInfo.FLAG_REQUEST_ENHANCED_WEB_ACCESSIBILITY
-                    | AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
-                    | AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
-                    | AccessibilityServiceInfo.DEFAULT;
 
-            getUiAutomation().setServiceInfo(info);
-        }
     }
 
     /**
@@ -165,7 +166,7 @@ public class UiDevice implements Searchable {
 
         AccessibilityEvent event = null;
         try {
-            event = getUiAutomation().executeAndWaitForEvent(
+            event = uiAutomation.executeAndWaitForEvent(
                     action, new EventForwardingFilter(condition), timeout);
         } catch (TimeoutException e) {
             // Ignore
@@ -208,13 +209,13 @@ public class UiDevice implements Searchable {
      * @since API Level 18
      */
     public void setCompressedLayoutHeirarchy(boolean compressed) {
-        AccessibilityServiceInfo info = getUiAutomation().getServiceInfo();
+        AccessibilityServiceInfo info = uiAutomation.getServiceInfo();
         if (compressed) {
             info.flags &= ~AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS;
         } else {
             info.flags |= AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS;
         }
-        getUiAutomation().setServiceInfo(info);
+        uiAutomation.setServiceInfo(info);
     }
 
     /**
@@ -836,7 +837,7 @@ public class UiDevice implements Searchable {
             }
         };
         try {
-            getUiAutomation().executeAndWaitForEvent(emptyRunnable, checkWindowUpdate, timeout);
+            uiAutomation.executeAndWaitForEvent(emptyRunnable, checkWindowUpdate, timeout);
         } catch (TimeoutException e) {
             return false;
         } catch (Exception e) {
@@ -874,7 +875,7 @@ public class UiDevice implements Searchable {
      */
     public boolean takeScreenshot(File storePath, float scale, int quality) {
         Tracer.trace(storePath, scale, quality);
-        Bitmap screenshot = getUiAutomation().takeScreenshot();
+        Bitmap screenshot = uiAutomation.takeScreenshot();
         if (screenshot == null) {
             return false;
         }
@@ -928,7 +929,7 @@ public class UiDevice implements Searchable {
      * @since API Level 21
      */
     public String executeShellCommand(String cmd) throws IOException {
-        ParcelFileDescriptor pfd = getUiAutomation().executeShellCommand(cmd);
+        ParcelFileDescriptor pfd = uiAutomation.executeShellCommand(cmd);
         byte[] buf = new byte[512];
         int bytesRead;
         FileInputStream fis = new ParcelFileDescriptor.AutoCloseInputStream(pfd);
@@ -947,7 +948,7 @@ public class UiDevice implements Searchable {
     public Point getDisplaySize() {
         Point p = new Point();
         Display display = getDisplayById();
-        display.getSize(p);
+        display.getRealSize(p);
         return p;
     }
 
@@ -955,32 +956,33 @@ public class UiDevice implements Searchable {
      * Returns a list containing the root {@link AccessibilityNodeInfo}s for each active window
      */
     AccessibilityNodeInfo[] getWindowRoots() {
-//        waitForIdle();
-
         clearAccessibilityCache();
         Set<AccessibilityNodeInfo> roots = new HashSet<>();
-
+        // 进入触摸模式，用完需立即放开！！！
+        setServiceToTouchMode(uiAutomation, true);
         // Start with the active window, which seems to sometimes be missing from the list returned
         // by the UiAutomation.
         String pkgName = "";
-        AccessibilityNodeInfo activeRoot = getUiAutomation().getRootInActiveWindow();
+        AccessibilityNodeInfo activeRoot = uiAutomation.getRootInActiveWindow();
         if (activeRoot != null) {
             roots.add(activeRoot);
             pkgName = (String) activeRoot.getPackageName();
         }
 
         // Support multi-window searches for API level 21 and up.
-        if (UiDevice.API_LEVEL_ACTUAL >= Build.VERSION_CODES.LOLLIPOP) {
-            for (AccessibilityWindowInfo window : getUiAutomation().getWindows()) {
-                AccessibilityNodeInfo root = window.getRoot();
-                if (root != null) {
-                    // 过滤包名
-                    if (pkgName.equals((String) root.getPackageName())) {
-                        roots.add(root);
-                    }
+        List<AccessibilityWindowInfo> accessibilityWindowInfo = uiAutomation.getWindows();
+
+        for (AccessibilityWindowInfo window : accessibilityWindowInfo) {
+            AccessibilityNodeInfo root = window.getRoot();
+            if (root != null) {
+                // 过滤包名
+                if (pkgName.equals((String) root.getPackageName())) {
+                    roots.add(root);
                 }
             }
         }
+        // 退出触摸模式
+        setServiceToTouchMode(uiAutomation, false);
         return roots.toArray(new AccessibilityNodeInfo[0]);
     }
 
@@ -1018,6 +1020,19 @@ public class UiDevice implements Searchable {
             LogUtil.e(msg + ":" + e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * 设置触摸模式的开关
+     */
+    private static void setServiceToTouchMode(UiAutomation uiAutomation, boolean enable) {
+        AccessibilityServiceInfo info = uiAutomation.getServiceInfo();
+        if (enable) {
+            info.flags |= AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE;
+        } else {
+            info.flags &= ~AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE;
+        }
+        uiAutomation.setServiceInfo(info);
     }
 
     UiAutomation getUiAutomation() {
