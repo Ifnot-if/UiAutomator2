@@ -66,6 +66,7 @@ public class UiDevice implements Searchable {
     // Get wait functionality from a mixin
     private final WaitMixin<UiDevice> mWaitMixin = new WaitMixin<>(this);
 
+    private WifiUtil wifiUtil;
 
     /**
      * A forward-looking API Level for development platform builds
@@ -842,6 +843,22 @@ public class UiDevice implements Searchable {
         return resolveInfo.activityInfo.packageName;
     }
 
+    public String getLaunchIntentForPackage(String packageName) {
+        Context context = Workarounds.getInstance().getSystemContext();
+        if (context == null) {
+            return "";
+        }
+
+        String component;
+        Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+        if (intent != null) {
+            component = intent.getComponent().getClassName();
+        } else {
+            component = HarmonyUtils.getHarmonyMainAbility(context, packageName) + "ShellActivity";
+        }
+        return component;
+    }
+
     /**
      * Executes a shell command using shell user identity, and return the standard output in string.
      * <p>
@@ -960,6 +977,18 @@ public class UiDevice implements Searchable {
             info.flags &= ~AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE;
         }
         uiAutomation.setServiceInfo(info);
+    }
+
+    /**
+     * 连接WIFI
+     *
+     * @param networkSSID ssid
+     * @param networkPass password
+     * @return boolean
+     */
+    public boolean connectWifi(String networkSSID, String networkPass) {
+        wifiUtil = new WifiUtil(Workarounds.getInstance().getSystemContext());
+        return wifiUtil.connect(networkSSID, networkPass);
     }
 
     UiAutomation getUiAutomation() {

@@ -78,7 +78,6 @@ class QueryController {
      * this event is using a DPad arrows to focus on UI elements.
      */
     public String getLastTraversedText() {
-        
         synchronized (mLock) {
             if (mLastTraversedText.length() > 0) {
                 return mLastTraversedText;
@@ -92,7 +91,6 @@ class QueryController {
      * event
      */
     public void clearLastTraversedText() {
-        
         synchronized (mLock) {
             mLastTraversedText = "";
         }
@@ -135,7 +133,6 @@ class QueryController {
      */
     @Deprecated
     public String getCurrentActivityName() {
-        
         synchronized (mLock) {
             return mLastActivityName;
         }
@@ -147,7 +144,6 @@ class QueryController {
      * @return String name of package
      */
     public String getCurrentPackageName() {
-        
         AccessibilityNodeInfo rootNode = getRootNode();
         if (rootNode == null) {
             return null;
