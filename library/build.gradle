@@ -1,19 +1,17 @@
 plugins {
-    id 'com.android.application'
+    id 'com.android.library'
+    id 'maven-publish'
 }
-
+group = 'com.github.Ifnot-if'
+version = '1.0'
 android {
-    namespace 'com.noinvasion.uiautomator'
-    compileSdk 33
+    compileSdkVersion 30
 
     defaultConfig {
-        applicationId "com.noinvasion.uiautomator"
-        minSdk 21
-        targetSdk 33
+        minSdkVersion 21
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -22,12 +20,22 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
 }
 
 dependencies {
-    implementation files('libs/ohos-2.1.1.21.jar')
+     implementation files('libs/ohos-2.1.1.21.jar')
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.Ifnot-if'
+                artifactId = 'UiAutomator2'
+                version = '1.0'
+            }
+        }
+    }
 }

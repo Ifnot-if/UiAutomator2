@@ -1,1 +1,8 @@
-<manifest />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.noinvasion.uiautomator2">
+
+
+    <application>
+    </application>
+
+</manifest>
