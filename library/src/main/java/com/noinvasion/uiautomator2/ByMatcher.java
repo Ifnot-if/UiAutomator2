@@ -22,7 +22,7 @@ class ByMatcher {
 
     /**
      * Constructs a new {@link ByMatcher} instance. Used by
-     * {@link ByMatcher#findMatch(BySelector, AccessibilityNodeInfo...)} to store state information
+     * {@link ByMatcher#findMatch(Point, BySelector, AccessibilityNodeInfo...)} to store state information
      * that does not change during recursive calls.
      *
      * @param selector     The criteria used to determine if a {@link AccessibilityNodeInfo} is a match.

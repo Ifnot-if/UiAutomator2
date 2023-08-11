@@ -66,15 +66,11 @@ public class UiDevice implements Searchable {
     // Get wait functionality from a mixin
     private final WaitMixin<UiDevice> mWaitMixin = new WaitMixin<>(this);
 
-    private WifiUtil wifiUtil;
-
     /**
      * A forward-looking API Level for development platform builds
      * <p>
      * This will be the actual API level on a released platform build, and will be last released
      * API Level + 1 on development platform build
-     *
-     * @hide
      */
     static final int API_LEVEL_ACTUAL = Build.VERSION.SDK_INT
             + ("REL".equals(Build.VERSION.CODENAME) ? 0 : 1);
@@ -185,7 +181,7 @@ public class UiDevice implements Searchable {
      * {@link EventCondition} instance.
      */
     private static class EventForwardingFilter implements AccessibilityEventFilter {
-        private EventCondition<?> mCondition;
+        private final EventCondition<?> mCondition;
 
         public EventForwardingFilter(EventCondition<?> condition) {
             mCondition = condition;
@@ -807,24 +803,14 @@ public class UiDevice implements Searchable {
         if (screenshot == null) {
             return false;
         }
-        BufferedOutputStream bos = null;
-        try {
-            bos = new BufferedOutputStream(new FileOutputStream(storePath));
-            if (bos != null) {
-                screenshot.compress(Bitmap.CompressFormat.PNG, quality, bos);
-                bos.flush();
-            }
+        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(storePath))) {
+            screenshot.compress(Bitmap.CompressFormat.PNG, quality, bos);
+            bos.flush();
         } catch (IOException ioe) {
             LogUtil.e("failed to save screen shot to file", ioe);
             return false;
         } finally {
-            if (bos != null) {
-                try {
-                    bos.close();
-                } catch (IOException ioe) {
-                    // Ignore
-                }
-            }
+            // Ignore
             screenshot.recycle();
         }
         return true;
@@ -869,7 +855,6 @@ public class UiDevice implements Searchable {
      * @param cmd the command to run
      * @return the standard output of the command
      * @throws IOException
-     * @hide
      * @since API Level 21
      */
     public String executeShellCommand(String cmd) throws IOException {
@@ -977,18 +962,6 @@ public class UiDevice implements Searchable {
             info.flags &= ~AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE;
         }
         uiAutomation.setServiceInfo(info);
-    }
-
-    /**
-     * 连接WIFI
-     *
-     * @param networkSSID ssid
-     * @param networkPass password
-     * @return boolean
-     */
-    public boolean connectWifi(String networkSSID, String networkPass) {
-        wifiUtil = new WifiUtil(Workarounds.getInstance().getSystemContext());
-        return wifiUtil.connect(networkSSID, networkPass);
     }
 
     UiAutomation getUiAutomation() {

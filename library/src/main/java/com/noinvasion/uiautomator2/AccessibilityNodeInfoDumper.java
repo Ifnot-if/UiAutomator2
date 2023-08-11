@@ -5,9 +5,13 @@ import static com.noinvasion.uiautomator2.AccessibilityNodeInfoHelper.getVisible
 import android.annotation.SuppressLint;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.Build;
 import android.util.Xml;
 import android.view.Display;
 import android.view.accessibility.AccessibilityNodeInfo;
+
+import androidx.annotation.DoNotInline;
+import androidx.annotation.RequiresApi;
 
 import org.xmlpull.v1.XmlSerializer;
 
@@ -75,6 +79,12 @@ public class AccessibilityNodeInfoDumper {
         serializer.attribute("", "isVisibleToUser", Boolean.toString(node.isVisibleToUser()));
         serializer.attribute("", "bounds", getVisibleBoundsInScreen(
                 node, width, height).toShortString());
+
+        if (Build.VERSION.SDK_INT >= 26)
+            serializer.attribute("", "hint", safeCharSeqToString(Api26Impl.getHintText(node)));
+        if (Build.VERSION.SDK_INT >= 30)
+            serializer.attribute("", "display-id",
+                    Integer.toString(Api30Impl.getDisplayId(node)));
 
         // 用于跟踪已访问的边界
         HashSet<Rect> visitedBounds = new HashSet<>();
@@ -208,4 +218,20 @@ public class AccessibilityNodeInfoDumper {
         return ret.toString();
     }
 
+    @RequiresApi(26)
+    static class Api26Impl {
+        @DoNotInline
+        static String getHintText(AccessibilityNodeInfo accessibilityNodeInfo) {
+            CharSequence chars = accessibilityNodeInfo.getHintText();
+            return (chars != null) ? chars.toString() : null;
+        }
+    }
+
+    @RequiresApi(30)
+    static class Api30Impl {
+        @DoNotInline
+        static int getDisplayId(AccessibilityNodeInfo accessibilityNodeInfo) {
+            return accessibilityNodeInfo.getWindow().getDisplayId();
+        }
+    }
 }

@@ -24,6 +24,7 @@ android {
 
 dependencies {
      implementation files('libs/ohos-2.1.1.21.jar')
+    implementation 'androidx.annotation:annotation-jvm:+'
 }
 
 afterEvaluate {
