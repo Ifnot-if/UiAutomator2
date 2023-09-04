@@ -966,15 +966,15 @@ public class UiDevice implements Searchable {
         uiAutomation.setServiceInfo(info);
     }
 
-    UiAutomation getUiAutomation() {
+    public UiAutomation getUiAutomation() {
         return uiAutomation;
     }
 
-    QueryController getQueryController() {
+    public QueryController getQueryController() {
         return mQueryController;
     }
 
-    InteractionController getInteractionController() {
+    public InteractionController getInteractionController() {
         return mInteractionController;
     }
 }
