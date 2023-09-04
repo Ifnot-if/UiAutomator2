@@ -101,7 +101,9 @@ public class UiDevice implements Searchable {
         this.uiAutomation = uiAutomation;
         mQueryController = new QueryController(uiAutomation);
         mInteractionController = new InteractionController(uiAutomation);
-        this.mDisplayManager = (DisplayManager) Workarounds.getInstance().getSystemContext().getSystemService(Context.DISPLAY_SERVICE);
+
+        Workarounds.apply();
+        this.mDisplayManager = (DisplayManager) FakeContext.get().getBaseContext().getSystemService(Context.DISPLAY_SERVICE);
 
     }
 
@@ -824,13 +826,13 @@ public class UiDevice implements Searchable {
     public String getLauncherPackageName() {
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
-        PackageManager pm = Workarounds.getInstance().getSystemContext().getPackageManager();
+        PackageManager pm = FakeContext.get().getBaseContext().getPackageManager();
         ResolveInfo resolveInfo = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
         return resolveInfo.activityInfo.packageName;
     }
 
     public String getLaunchIntentForPackage(String packageName) {
-        Context context = Workarounds.getInstance().getSystemContext();
+        Context context = FakeContext.get().getBaseContext();
         if (context == null) {
             return "";
         }

@@ -676,7 +676,7 @@ class InteractionController {
      * @return true if the screen is ON else false
      */
     public boolean isScreenOn() {
-        PowerManager pm = (PowerManager) Workarounds.getInstance().getSystemContext().getSystemService(Service.POWER_SERVICE);
+        PowerManager pm = (PowerManager)FakeContext.get().getBaseContext().getSystemService(Service.POWER_SERVICE);
         return pm.isScreenOn();
     }
 

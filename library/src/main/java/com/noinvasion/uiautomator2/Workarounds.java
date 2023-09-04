@@ -1,45 +1,55 @@
 package com.noinvasion.uiautomator2;
 
 import android.annotation.SuppressLint;
+import android.app.Application;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.pm.ApplicationInfo;
+import android.os.Looper;
+import android.util.Log;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-@SuppressLint({"PrivateApi", "DiscouragedPrivateApi"})
 public final class Workarounds {
-    private static final String TAG = "Workarounds";
 
-    private static volatile Workarounds instance;
+    private static Class<?> activityThreadClass;
+    private static Object activityThread;
+    private final static String TAG = "Workarounds";
 
     private Workarounds() {
+        // not instantiable
     }
 
-    public static Workarounds getInstance() {
-        if (instance == null) {
-            synchronized (Workarounds.class) {
-                if (instance == null) {
-                    instance = new Workarounds();
-                }
-            }
-        }
-        return instance;
+    public static void apply() {
+        Looper.prepareMainLooper();
+
+//        fillAppInfo();
+        fillBaseContext();
+//        fillAppContext();
     }
 
-    public Context getSystemContext() {
-        try {
+    @SuppressLint("PrivateApi,DiscouragedPrivateApi")
+    private static void fillActivityThread() throws Exception {
+        if (activityThread == null) {
             // ActivityThread activityThread = new ActivityThread();
-            Class<?> activityThreadClass = Class.forName("android.app.ActivityThread");
+            activityThreadClass = Class.forName("android.app.ActivityThread");
             Constructor<?> activityThreadConstructor = activityThreadClass.getDeclaredConstructor();
             activityThreadConstructor.setAccessible(true);
-            Object activityThread = activityThreadConstructor.newInstance();
+            activityThread = activityThreadConstructor.newInstance();
 
             // ActivityThread.sCurrentActivityThread = activityThread;
             Field sCurrentActivityThreadField = activityThreadClass.getDeclaredField("sCurrentActivityThread");
             sCurrentActivityThreadField.setAccessible(true);
             sCurrentActivityThreadField.set(null, activityThread);
+        }
+    }
+
+    @SuppressLint("PrivateApi,DiscouragedPrivateApi")
+    private static void fillAppInfo() {
+        try {
+            fillActivityThread();
 
             // ActivityThread.AppBindData appBindData = new ActivityThread.AppBindData();
             Class<?> appBindDataClass = Class.forName("android.app.ActivityThread$AppBindData");
@@ -48,7 +58,7 @@ public final class Workarounds {
             Object appBindData = appBindDataConstructor.newInstance();
 
             ApplicationInfo applicationInfo = new ApplicationInfo();
-            applicationInfo.packageName = "com.test.uiautomator2";
+            applicationInfo.packageName = FakeContext.PACKAGE_NAME;
 
             // appBindData.appInfo = applicationInfo;
             Field appInfoField = appBindDataClass.getDeclaredField("appInfo");
@@ -59,14 +69,39 @@ public final class Workarounds {
             Field mBoundApplicationField = activityThreadClass.getDeclaredField("mBoundApplication");
             mBoundApplicationField.setAccessible(true);
             mBoundApplicationField.set(activityThread, appBindData);
-
-            // Context ctx = activityThread.getSystemContext();
-            Method getSystemContextMethod = activityThreadClass.getDeclaredMethod("getSystemContext");
-            return (Context) getSystemContextMethod.invoke(activityThread);
         } catch (Throwable throwable) {
-            // this is a workaround, so failing is not an error
-            LogUtil.d("Could not fill app info: " + throwable.getMessage());
+            Log.d(TAG, "Could not fill app info: " + throwable.getMessage());
         }
-        return null;
+    }
+
+    @SuppressLint("PrivateApi,DiscouragedPrivateApi")
+    private static void fillAppContext() {
+        try {
+            fillActivityThread();
+
+            Application app = Application.class.newInstance();
+            Field baseField = ContextWrapper.class.getDeclaredField("mBase");
+            baseField.setAccessible(true);
+            baseField.set(app, FakeContext.get());
+
+            // activityThread.mInitialApplication = app;
+            Field mInitialApplicationField = activityThreadClass.getDeclaredField("mInitialApplication");
+            mInitialApplicationField.setAccessible(true);
+            mInitialApplicationField.set(activityThread, app);
+        } catch (Throwable throwable) {
+            Log.d(TAG, "Could not fill app context: " + throwable.getMessage());
+        }
+    }
+
+    private static void fillBaseContext() {
+        try {
+            fillActivityThread();
+
+            Method getSystemContextMethod = activityThreadClass.getDeclaredMethod("getSystemContext");
+            Context context = (Context) getSystemContextMethod.invoke(activityThread);
+            FakeContext.get().setBaseContext(context);
+        } catch (Throwable throwable) {
+            Log.d(TAG, "Could not fill base context: " + throwable.getMessage());
+        }
     }
 }

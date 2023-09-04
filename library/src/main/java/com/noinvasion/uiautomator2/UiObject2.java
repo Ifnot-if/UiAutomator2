@@ -62,7 +62,7 @@ public class UiObject2 implements Searchable {
         mCachedNode = cachedNode;
         mGestures = Gestures.getInstance();
         mGestureController = GestureController.getInstance(device);
-        mDisplayMetrics = Workarounds.getInstance().getSystemContext().getResources()
+        mDisplayMetrics = FakeContext.get().getBaseContext().getResources()
                 .getDisplayMetrics();
     }
 
@@ -593,7 +593,7 @@ public class UiObject2 implements Searchable {
      * @return Whether the object can still scroll in the given direction.
      */
     public boolean fling(final Direction direction, final int speed) {
-        ViewConfiguration vc = ViewConfiguration.get(Workarounds.getInstance().getSystemContext());
+        ViewConfiguration vc = ViewConfiguration.get(FakeContext.get().getBaseContext());
         if (speed < vc.getScaledMinimumFlingVelocity()) {
             throw new IllegalArgumentException("Speed is less than the minimum fling velocity");
         }

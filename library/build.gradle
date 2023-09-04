@@ -5,13 +5,13 @@ plugins {
 group = 'com.github.Ifnot-if'
 version = '1.0'
 android {
-    compileSdkVersion 30
+    compileSdkVersion 34
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 34
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.4"
     }
 
     buildTypes {
@@ -23,7 +23,7 @@ android {
 }
 
 dependencies {
-     implementation files('libs/ohos-2.1.1.21.jar')
+    implementation files('libs/ohos-2.1.1.21.jar')
     implementation 'androidx.annotation:annotation-jvm:+'
 }
 
