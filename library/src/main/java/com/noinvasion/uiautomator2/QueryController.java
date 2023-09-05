@@ -9,7 +9,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.concurrent.TimeoutException;
 
-class QueryController {
+public class QueryController {
 
     /**
      * This value has the greatest bearing on the appearance of test execution speeds.

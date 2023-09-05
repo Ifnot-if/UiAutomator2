@@ -31,7 +31,7 @@ import java.util.concurrent.TimeoutException;
  * as fast as it receives them. All idle synchronization is performed prior to querying the
  * hierarchy. See {@link QueryController}
  */
-class InteractionController {
+public class InteractionController {
 
     private final KeyCharacterMap mKeyCharacterMap =
             KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD);
