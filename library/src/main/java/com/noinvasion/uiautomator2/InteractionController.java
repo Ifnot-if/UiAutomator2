@@ -785,7 +785,6 @@ public class InteractionController {
             ret &= injectEventSync(event);
         }
 
-        LogUtil.i("x " + pointerCoords[0].x);
         // first to touch down is last up
         event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, 1,
                 properties, pointerCoords, 0, 0, 1, 1, 0, 0, InputDevice.SOURCE_TOUCHSCREEN, 0);

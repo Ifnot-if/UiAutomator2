@@ -141,10 +141,10 @@ class ByMatcher {
             AccessibilityNodeInfo child = node.getChild(i);
             if (child == null) {
                 if (!hasNullChild) {
-                    LogUtil.i(String.format("Node returned null child: %s", node));
+                    LogUtil.d(String.format("Node returned null child: %s", node));
                 }
                 hasNullChild = true;
-                LogUtil.i(String.format("Skipping null child (%s of %s)", i, numChildren));
+                LogUtil.d(String.format("Skipping null child (%s of %s)", i, numChildren));
                 continue;
             } else {
                 Rect rect = new Rect();
@@ -157,7 +157,7 @@ class ByMatcher {
 
                 // 检查边界是否已经存在
                 if (isWebView && rect.top != 0 && visitedBounds.contains(rect)) {
-                    LogUtil.i(String.format("visitedBounds skip: %s ", node));
+                    LogUtil.d(String.format("visitedBounds skip: %s ", node));
                     continue;
                 }
                 visitedBounds.add(rect);

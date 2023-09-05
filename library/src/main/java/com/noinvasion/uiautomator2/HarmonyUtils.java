@@ -48,7 +48,7 @@ public class HarmonyUtils {
 
     public static boolean isFoldDisplay() {
         String result = getProp("hw_mc.audio.fold_noti_earpiece");
-        return !TextUtils.isEmpty(result) && result.equalsIgnoreCase("true");
+        return !TextUtils.isEmpty(result) && "true".equalsIgnoreCase(result);
     }
 
 

@@ -1,7 +1,5 @@
 package com.noinvasion.uiautomator2;
 
-import static com.noinvasion.uiautomator2.AccessibilityNodeInfoHelper.getVisibleBoundsInScreen;
-
 import android.annotation.SuppressLint;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -9,51 +7,55 @@ import android.os.Build;
 import android.util.Xml;
 import android.view.Display;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityWindowInfo;
 
 import androidx.annotation.DoNotInline;
 import androidx.annotation.RequiresApi;
 
 import org.xmlpull.v1.XmlSerializer;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashSet;
 
 public class AccessibilityNodeInfoDumper {
-
+    private final static String TAG = "AccessibilityNodeInfoDumper";
     private static final String[] NAF_EXCLUDED_CLASSES = new String[]{
             android.widget.GridView.class.getName(), android.widget.GridLayout.class.getName(),
             android.widget.ListView.class.getName(), android.widget.TableLayout.class.getName()
     };
     private static boolean isWebView;
 
-    public static void dumpWindowHierarchy(UiDevice device, OutputStream out) throws IOException {
+    public static void dumpWindowHierarchy(UiDevice device, OutputStream out) {
         long startTime = System.currentTimeMillis();
-        XmlSerializer serializer = Xml.newSerializer();
-        serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
-        serializer.setOutput(out, "UTF-8");
+        try {
+            XmlSerializer serializer = Xml.newSerializer();
+            serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+            serializer.setOutput(out, "UTF-8");
 
-        serializer.startDocument("UTF-8", true);
-        serializer.startTag("", "hierarchy");
+            serializer.startDocument("UTF-8", true);
+            serializer.startTag("", "hierarchy");
 
-        Display display = device.getDisplayById();
-        Point displayPoint = new Point();
-        display.getRealSize(displayPoint);
-        serializer.attribute("", "rotation", Integer.toString(display.getRotation()));
+            Display display = device.getDisplayById();
+            Point displayPoint = new Point();
+            display.getRealSize(displayPoint);
+            serializer.attribute("", "rotation", Integer.toString(display.getRotation()));
 
-        isWebView = false;
-        for (AccessibilityNodeInfo root : device.getWindowRoots()) {
-            dumpNodeRec(root, serializer, 0, displayPoint.x, displayPoint.y);
+            isWebView = false;
+            for (AccessibilityNodeInfo root : device.getWindowRoots()) {
+                dumpNodeRec(root, serializer, 0, displayPoint.x, displayPoint.y);
+            }
+
+            serializer.endTag("", "hierarchy");
+            serializer.endDocument();
+        } catch (Exception e) {
+            LogUtil.e(TAG, e);
         }
-
-        serializer.endTag("", "hierarchy");
-        serializer.endDocument();
         LogUtil.d("Fetch time: " + (System.currentTimeMillis() - startTime) + "ms");
     }
 
     @SuppressLint("DefaultLocale")
     private static void dumpNodeRec(AccessibilityNodeInfo node, XmlSerializer serializer, int index,
-                                    int width, int height) throws IOException {
+                                    int width, int height) throws Exception {
         serializer.startTag("", "node");
         if (!nafExcludedClass(node) && !nafCheck(node)) {
             serializer.attribute("", "NAF", Boolean.toString(true));
@@ -80,11 +82,13 @@ public class AccessibilityNodeInfoDumper {
         serializer.attribute("", "bounds", getVisibleBoundsInScreen(
                 node, width, height).toShortString());
 
-        if (Build.VERSION.SDK_INT >= 26)
+        if (Build.VERSION.SDK_INT >= 26) {
             serializer.attribute("", "hint", safeCharSeqToString(Api26Impl.getHintText(node)));
-        if (Build.VERSION.SDK_INT >= 30)
+        }
+        if (Build.VERSION.SDK_INT >= 30) {
             serializer.attribute("", "display-id",
                     Integer.toString(Api30Impl.getDisplayId(node)));
+        }
 
         // 用于跟踪已访问的边界
         HashSet<Rect> visitedBounds = new HashSet<>();
@@ -107,7 +111,7 @@ public class AccessibilityNodeInfoDumper {
                 if (rect.left >= 0 && rect.right >= 0 && rect.bottom >= 0 && rect.left < width && rect.top < height) {
                     // 检查边界是否已经存在
                     if (isWebView && rect.top != 0 && visitedBounds.contains(rect)) {
-                        LogUtil.i(String.format("visitedBounds skip: %s ", node));
+                        LogUtil.d(String.format("visitedBounds skip: %s ", node));
                         continue;
                     }
                     visitedBounds.add(rect);
@@ -115,7 +119,7 @@ public class AccessibilityNodeInfoDumper {
                     child.recycle();
                 }
             } else {
-                LogUtil.i(String.format("Null child %d/%d, parent: %s", i, count, node));
+                LogUtil.d(String.format("Null child %d/%d, parent: %s", i, count, node));
             }
         }
         serializer.endTag("", "node");
@@ -177,14 +181,14 @@ public class AccessibilityNodeInfoDumper {
         int childCount = node.getChildCount();
         for (int x = 0; x < childCount; x++) {
             AccessibilityNodeInfo childNode = node.getChild(x);
-
-            if (!safeCharSeqToString(childNode.getContentDescription()).isEmpty()
-                    || !safeCharSeqToString(childNode.getText()).isEmpty()) {
-                return true;
-            }
-
-            if (childNafCheck(childNode)) {
-                return true;
+            if (childNode != null) {
+                if (!safeCharSeqToString(childNode.getContentDescription()).isEmpty() ||
+                        !safeCharSeqToString(childNode.getText()).isEmpty()) {
+                    return true;
+                }
+                if (childNafCheck(childNode)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -218,6 +222,40 @@ public class AccessibilityNodeInfoDumper {
         return ret.toString();
     }
 
+    /**
+     * Returns the node's bounds clipped to the size of the display
+     *
+     * @param node
+     * @param width  pixel width of the display
+     * @param height pixel height of the display
+     * @return null if node is null, else a Rect containing visible bounds
+     */
+    @SuppressLint("CheckResult")
+    public static Rect getVisibleBoundsInScreen(AccessibilityNodeInfo node, int width, int height) {
+        if (node == null) {
+            return null;
+        }
+        // targeted node's bounds
+        Rect nodeRect = new Rect();
+        node.getBoundsInScreen(nodeRect);
+
+        Rect displayRect = new Rect(0, 0, width, height);
+
+        nodeRect.intersect(displayRect);
+
+        // On platforms that give us access to the node's window
+        if (UiDevice.API_LEVEL_ACTUAL >= Build.VERSION_CODES.LOLLIPOP) {
+            // Trim any portion of the bounds that are outside the window
+            Rect window = new Rect();
+            if (node.getWindow() != null) {
+                node.getWindow().getBoundsInScreen(window);
+                nodeRect.intersect(window);
+            }
+        }
+
+        return nodeRect;
+    }
+
     @RequiresApi(26)
     static class Api26Impl {
         @DoNotInline
@@ -231,7 +269,14 @@ public class AccessibilityNodeInfoDumper {
     static class Api30Impl {
         @DoNotInline
         static int getDisplayId(AccessibilityNodeInfo accessibilityNodeInfo) {
-            return accessibilityNodeInfo.getWindow().getDisplayId();
+            AccessibilityWindowInfo windowInfo = accessibilityNodeInfo.getWindow();
+            if (windowInfo == null) {
+                LogUtil.d("Api30Impl windowInfo == null , return 0");
+                return 0;
+            } else {
+                return windowInfo.getDisplayId();
+            }
         }
     }
+
 }

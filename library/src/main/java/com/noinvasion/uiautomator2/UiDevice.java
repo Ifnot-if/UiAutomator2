@@ -727,7 +727,7 @@ public class UiDevice implements Searchable {
      * @param out The output stream that the window hierarchy information is written to.
      * @throws IOException
      */
-    public void dumpWindowHierarchy(OutputStream out) throws IOException {
+    public void dumpWindowHierarchy(OutputStream out) {
         AccessibilityNodeInfoDumper.dumpWindowHierarchy(this, out);
     }
 
