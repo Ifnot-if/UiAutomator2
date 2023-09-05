@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.KeyEvent;
@@ -24,12 +25,15 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Node;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,11 +58,11 @@ public class UiDevice implements Searchable {
     /**
      * keep a reference of {@link Instrumentation} instance
      */
-    private UiAutomation uiAutomation;
-    private QueryController mQueryController;
-    private InteractionController mInteractionController;
+    private final UiAutomation uiAutomation;
+    private final QueryController mQueryController;
+    private final InteractionController mInteractionController;
 
-    private DisplayManager mDisplayManager;
+    private final DisplayManager mDisplayManager;
 
     // Singleton instance
     private static UiDevice sInstance;
@@ -72,15 +76,12 @@ public class UiDevice implements Searchable {
      * This will be the actual API level on a released platform build, and will be last released
      * API Level + 1 on development platform build
      */
-    static final int API_LEVEL_ACTUAL = Build.VERSION.SDK_INT
-            + ("REL".equals(Build.VERSION.CODENAME) ? 0 : 1);
+    static final int API_LEVEL_ACTUAL = Build.VERSION.SDK_INT + ("REL".equals(Build.VERSION.CODENAME) ? 0 : 1);
 
     /**
      * @deprecated Should use {@link UiDevice} instead.
      */
     @Deprecated
-    private UiDevice() {
-    }
 
     /**
      * Private constructor. Clients should use {@link UiDevice}.
@@ -90,11 +91,7 @@ public class UiDevice implements Searchable {
         // Enable multi-window support for API level 21 and up
         // Subscribe to window information
         AccessibilityServiceInfo info = uiAutomation.getServiceInfo();
-        info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
-                | AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
-                | AccessibilityServiceInfo.FLAG_REQUEST_ENHANCED_WEB_ACCESSIBILITY
-                | AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
-                | AccessibilityServiceInfo.DEFAULT;
+        info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS | AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS | AccessibilityServiceInfo.FLAG_REQUEST_ENHANCED_WEB_ACCESSIBILITY | AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS | AccessibilityServiceInfo.DEFAULT;
 
         uiAutomation.setServiceInfo(info);
 
@@ -124,8 +121,22 @@ public class UiDevice implements Searchable {
      * or null if no matching objects are found.
      */
     public UiObject2 findObject(BySelector selector) {
-        AccessibilityNodeInfo node = ByMatcher.findMatch(getDisplaySize(), selector, getWindowRoots());
-        return node != null ? new UiObject2(this, selector, node) : null;
+        UiObject2 object2 = null;
+        if (!TextUtils.isEmpty(selector.getXPath())) {
+            try {
+                Document document = DocumentHelper.parseText(dumpWindowHierarchy());
+                Node node = document.selectSingleNode(selector.getXPath());
+                if (node != null) {
+                    object2 = new UiObject2(this, selector, getAccessibilityNodeInfo(node));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            AccessibilityNodeInfo node = ByMatcher.findMatch(getDisplaySize(), selector, getWindowRoots());
+            object2 = node != null ? new UiObject2(this, selector, node) : null;
+        }
+        return object2;
     }
 
     /**
@@ -133,13 +144,54 @@ public class UiDevice implements Searchable {
      */
     public List<UiObject2> findObjects(BySelector selector) {
         List<UiObject2> ret = new ArrayList<>();
-        for (AccessibilityNodeInfo node : ByMatcher.findMatches(getDisplaySize(), selector, getWindowRoots())) {
-            ret.add(new UiObject2(this, selector, node));
+        if (!TextUtils.isEmpty(selector.getXPath())) {
+            try {
+                Document document = DocumentHelper.parseText(dumpWindowHierarchy());
+                List<Node> nodeList = document.selectNodes(selector.getXPath());
+                int size = nodeList.size();
+                if (size > 0) {
+                    for (int i = 0; i < size; i++) {
+                        Node node = nodeList.get(i);
+                        ret.add(new UiObject2(this, selector, getAccessibilityNodeInfo(node)));
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            for (AccessibilityNodeInfo node : ByMatcher.findMatches(getDisplaySize(), selector, getWindowRoots())) {
+                ret.add(new UiObject2(this, selector, node));
+            }
         }
-
         return ret;
     }
 
+    private AccessibilityNodeInfo getAccessibilityNodeInfo(Node node) {
+
+        AccessibilityNodeInfo info = AccessibilityNodeInfo.obtain();
+
+        info.setViewIdResourceName(node.valueOf("@resource-id"));
+        info.setText(node.valueOf("@text"));
+        info.setClassName(node.valueOf("@class"));
+        info.setContentDescription(node.valueOf("@content-desc"));
+        info.setPackageName(node.valueOf("@package"));
+        info.setClickable(Boolean.parseBoolean(node.valueOf("@clickable")));
+        info.setChecked(Boolean.parseBoolean(node.valueOf("@checked")));
+        info.setCheckable(Boolean.parseBoolean(node.valueOf("@checkable")));
+        info.setEnabled(Boolean.parseBoolean(node.valueOf("@enabled")));
+        info.setFocused(Boolean.parseBoolean(node.valueOf("@focused")));
+        info.setFocusable(Boolean.parseBoolean(node.valueOf("@focusable")));
+        info.setLongClickable(Boolean.parseBoolean(node.valueOf("@long-clickable")));
+        info.setSelected(Boolean.parseBoolean(node.valueOf("@selected")));
+        info.setScrollable(Boolean.parseBoolean(node.valueOf("@scrollable")));
+        info.setVisibleToUser(Boolean.parseBoolean(node.valueOf("@isVisibleToUser")));
+        info.setPassword(Boolean.parseBoolean(node.valueOf("@password")));
+        info.setBoundsInScreen(new Rect(node.valueOf("@bounds")).toRect());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            info.setHintText(node.valueOf("@hint"));
+        }
+        return info;
+    }
 
     /**
      * Waits for given the {@code condition} to be met.
@@ -165,8 +217,7 @@ public class UiDevice implements Searchable {
 
         AccessibilityEvent event = null;
         try {
-            event = uiAutomation.executeAndWaitForEvent(
-                    action, new EventForwardingFilter(condition), timeout);
+            event = uiAutomation.executeAndWaitForEvent(action, new EventForwardingFilter(condition), timeout);
         } catch (TimeoutException e) {
             // Ignore
         }
@@ -315,9 +366,7 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressMenu() {
-        return getInteractionController().sendKeyAndWaitForEvent(
-                KeyEvent.KEYCODE_MENU, 0, AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
-                KEY_PRESS_EVENT_TIMEOUT);
+        return getInteractionController().sendKeyAndWaitForEvent(KeyEvent.KEYCODE_MENU, 0, AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED, KEY_PRESS_EVENT_TIMEOUT);
     }
 
     /**
@@ -327,9 +376,7 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressBack() {
-        return getInteractionController().sendKeyAndWaitForEvent(
-                KeyEvent.KEYCODE_BACK, 0, AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
-                KEY_PRESS_EVENT_TIMEOUT);
+        return getInteractionController().sendKeyAndWaitForEvent(KeyEvent.KEYCODE_BACK, 0, AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED, KEY_PRESS_EVENT_TIMEOUT);
     }
 
     /**
@@ -339,9 +386,7 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean pressHome() {
-        return getInteractionController().sendKeyAndWaitForEvent(
-                KeyEvent.KEYCODE_HOME, 0, AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
-                KEY_PRESS_EVENT_TIMEOUT);
+        return getInteractionController().sendKeyAndWaitForEvent(KeyEvent.KEYCODE_HOME, 0, AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED, KEY_PRESS_EVENT_TIMEOUT);
     }
 
     /**
@@ -532,8 +577,7 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean swipe(int startX, int startY, int endX, int endY, int steps) {
-        return getInteractionController()
-                .swipe(startX, startY, endX, endY, steps);
+        return getInteractionController().swipe(startX, startY, endX, endY, steps);
     }
 
     /**
@@ -552,8 +596,7 @@ public class UiDevice implements Searchable {
      * @since API Level 18
      */
     public boolean drag(int startX, int startY, int endX, int endY, int steps) {
-        return getInteractionController()
-                .swipe(startX, startY, endX, endY, steps, true);
+        return getInteractionController().swipe(startX, startY, endX, endY, steps, true);
     }
 
     /**
@@ -601,8 +644,7 @@ public class UiDevice implements Searchable {
      */
     public boolean isNaturalOrientation() {
         int ret = getDisplayRotation();
-        return ret == UiAutomation.ROTATION_FREEZE_0 ||
-                ret == UiAutomation.ROTATION_FREEZE_180;
+        return ret == UiAutomation.ROTATION_FREEZE_0 || ret == UiAutomation.ROTATION_FREEZE_180;
     }
 
     /**
@@ -722,13 +764,10 @@ public class UiDevice implements Searchable {
     }
 
     /**
-     * Dump the current window hierarchy to an {@link OutputStream}.
-     *
-     * @param out The output stream that the window hierarchy information is written to.
-     * @throws IOException
+     * Dump the current window hierarchy.
      */
-    public void dumpWindowHierarchy(OutputStream out) {
-        AccessibilityNodeInfoDumper.dumpWindowHierarchy(this, out);
+    public String dumpWindowHierarchy() {
+        return AccessibilityNodeInfoDumper.dumpWindowHierarchy(this);
     }
 
     /**

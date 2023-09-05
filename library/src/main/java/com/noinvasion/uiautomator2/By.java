@@ -14,8 +14,11 @@ import java.util.regex.Pattern;
  */
 public class By {
 
-    /** This class is not meant to be instanciated */
-    private By() { }
+    /**
+     * This class is not meant to be instanciated
+     */
+    private By() {
+    }
 
 
     /**
@@ -194,6 +197,14 @@ public class By {
      */
     public static BySelector text(Pattern regex) {
         return new BySelector().text(regex);
+    }
+
+    public static BySelector xpath(String xpath) {
+        return new BySelector().xpath(xpath);
+    }
+
+    public static BySelector xpath(Pattern regex) {
+        return new BySelector().xpath(regex);
     }
 
     /**

@@ -30,6 +30,8 @@ android {
 dependencies {
     implementation files('libs/ohos-2.1.1.21.jar')
     implementation 'androidx.annotation:annotation-jvm:1.6.0'
+    implementation 'org.dom4j:dom4j:2.1.4'
+
 }
 
 afterEvaluate {

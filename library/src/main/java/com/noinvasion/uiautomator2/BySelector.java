@@ -16,6 +16,7 @@ public class BySelector {
     Pattern mPkg;
     Pattern mRes;
     Pattern mText;
+    Pattern mXPath;
 
     // Boolean criteria
     Boolean mChecked;
@@ -53,6 +54,7 @@ public class BySelector {
         mPkg = original.mPkg;
         mRes = original.mRes;
         mText = original.mText;
+        mXPath = original.mXPath;
 
         mChecked = original.mChecked;
         mCheckable = original.mCheckable;
@@ -366,6 +368,21 @@ public class BySelector {
         return this;
     }
 
+    public BySelector xpath(String xpathValue) {
+        checkNotNull(xpathValue, "textValue cannot be null");
+
+        return xpath(Pattern.compile(xpathValue));
+    }
+
+    public BySelector xpath(Pattern xpathValue) {
+        checkNotNull(xpathValue, "xpathValue cannot be null");
+
+        if (mXPath != null) {
+            throw new IllegalStateException("XPath selector is already defined");
+        }
+        mXPath = xpathValue;
+        return this;
+    }
 
     /**
      * Sets the search criteria to match elements that are checkable or not checkable.
@@ -667,6 +684,13 @@ public class BySelector {
             throw new NullPointerException(message);
         }
         return value;
+    }
+
+    public String getXPath() {
+        if (mXPath == null) {
+            return null;
+        }
+        return mXPath.toString();
     }
 }
 

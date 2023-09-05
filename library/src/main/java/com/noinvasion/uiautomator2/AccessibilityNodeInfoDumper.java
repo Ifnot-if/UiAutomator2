@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Xml;
 import android.view.Display;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -14,8 +15,10 @@ import androidx.annotation.RequiresApi;
 
 import org.xmlpull.v1.XmlSerializer;
 
-import java.io.OutputStream;
+import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 public class AccessibilityNodeInfoDumper {
     private final static String TAG = "AccessibilityNodeInfoDumper";
@@ -24,13 +27,15 @@ public class AccessibilityNodeInfoDumper {
             android.widget.ListView.class.getName(), android.widget.TableLayout.class.getName()
     };
     private static boolean isWebView;
+    private static Map<String, Integer> map;
 
-    public static void dumpWindowHierarchy(UiDevice device, OutputStream out) {
+    public static String dumpWindowHierarchy(UiDevice device) {
         long startTime = System.currentTimeMillis();
+        StringWriter xmlDump = new StringWriter();
         try {
             XmlSerializer serializer = Xml.newSerializer();
             serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
-            serializer.setOutput(out, "UTF-8");
+            serializer.setOutput(xmlDump);
 
             serializer.startDocument("UTF-8", true);
             serializer.startTag("", "hierarchy");
@@ -41,8 +46,9 @@ public class AccessibilityNodeInfoDumper {
             serializer.attribute("", "rotation", Integer.toString(display.getRotation()));
 
             isWebView = false;
+            map = new HashMap<>();
             for (AccessibilityNodeInfo root : device.getWindowRoots()) {
-                dumpNodeRec(root, serializer, 0, displayPoint.x, displayPoint.y);
+                dumpNodeRec(root, serializer, 0, displayPoint.x, displayPoint.y, 1, 1, 1);
             }
 
             serializer.endTag("", "hierarchy");
@@ -51,20 +57,57 @@ public class AccessibilityNodeInfoDumper {
             LogUtil.e(TAG, e);
         }
         LogUtil.d("Fetch time: " + (System.currentTimeMillis() - startTime) + "ms");
+        return xmlDump.toString();
     }
 
     @SuppressLint("DefaultLocale")
     private static void dumpNodeRec(AccessibilityNodeInfo node, XmlSerializer serializer, int index,
-                                    int width, int height) throws Exception {
+                                    int width, int height, int idSequence, int textSequence, int classSequence) throws Exception {
         serializer.startTag("", "node");
         if (!nafExcludedClass(node) && !nafCheck(node)) {
             serializer.attribute("", "NAF", Boolean.toString(true));
         }
         serializer.attribute("", "index", Integer.toString(index));
-        serializer.attribute("", "text", safeCharSeqToString(node.getText()));
-        serializer.attribute("", "resource-id", safeCharSeqToString(node.getViewIdResourceName()));
+
+        String resourceID = safeCharSeqToString(node.getViewIdResourceName());
+        serializer.attribute("", "resource-id", resourceID);
+        if (!TextUtils.isEmpty(resourceID)) {
+            if (map.containsKey(resourceID)) {
+                idSequence = map.get(resourceID);
+                idSequence++;
+            } else {
+                idSequence = 1;
+            }
+            map.put(resourceID, idSequence);
+            serializer.attribute("", "id-sequence", Integer.toString(idSequence));
+        }
+
+        String text = safeCharSeqToString(node.getText());
+        serializer.attribute("", "text", text);
+        if (!TextUtils.isEmpty(text)) {
+            if (map.containsKey(text)) {
+                textSequence = map.get(text);
+                textSequence++;
+            } else {
+                textSequence = 1;
+            }
+            map.put(text, textSequence);
+            serializer.attribute("", "text-sequence", Integer.toString(textSequence));
+        }
+
         String clazz = safeCharSeqToString(node.getClassName());
         serializer.attribute("", "class", clazz);
+        if (!TextUtils.isEmpty(clazz)) {
+            if (map.containsKey(clazz)) {
+                classSequence = map.get(clazz);
+                classSequence++;
+            } else {
+                classSequence = 1;
+            }
+            map.put(clazz, classSequence);
+            serializer.attribute("", "class-sequence", Integer.toString(classSequence));
+        }
+
         serializer.attribute("", "package", safeCharSeqToString(node.getPackageName()));
         serializer.attribute("", "content-desc", safeCharSeqToString(node.getContentDescription()));
         serializer.attribute("", "checkable", Boolean.toString(node.isCheckable()));
@@ -115,7 +158,7 @@ public class AccessibilityNodeInfoDumper {
                         continue;
                     }
                     visitedBounds.add(rect);
-                    dumpNodeRec(child, serializer, index, width, height);
+                    dumpNodeRec(child, serializer, index, width, height, idSequence, textSequence, classSequence);
                     child.recycle();
                 }
             } else {

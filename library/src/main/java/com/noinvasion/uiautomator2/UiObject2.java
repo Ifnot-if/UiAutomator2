@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -25,12 +26,12 @@ public class UiObject2 implements Searchable {
 
     private static final String TAG = UiObject2.class.getSimpleName();
 
-    private final UiDevice mDevice;
-    private final Gestures mGestures;
-    private final GestureController mGestureController;
-    private final BySelector mSelector;  // Hold this mainly for debugging
+    private UiDevice mDevice;
+    private Gestures mGestures;
+    private GestureController mGestureController;
+    private BySelector mSelector;  // Hold this mainly for debugging
     private AccessibilityNodeInfo mCachedNode;
-    private final DisplayMetrics mDisplayMetrics;
+    private DisplayMetrics mDisplayMetrics;
 
     // Margins
     private int mMarginLeft = 5;
@@ -51,7 +52,7 @@ public class UiObject2 implements Searchable {
 
     // Get wait functionality from a mixin
     private final WaitMixin<UiObject2> mWaitMixin = new WaitMixin<>(this);
-
+    private final boolean isXPath;
 
     /**
      * Package-private constructor. Used by {@link UiDevice#findObject(BySelector)}.
@@ -64,6 +65,7 @@ public class UiObject2 implements Searchable {
         mGestureController = GestureController.getInstance(device);
         mDisplayMetrics = FakeContext.get().getBaseContext().getResources()
                 .getDisplayMetrics();
+        isXPath = !TextUtils.isEmpty(mSelector.getXPath());
     }
 
     /**
@@ -157,14 +159,20 @@ public class UiObject2 implements Searchable {
      * Returns this object's parent, or null if it has no parent.
      */
     public UiObject2 getParent() {
+        if (isXPath) {
+            return null;
+        }
         AccessibilityNodeInfo parent = getAccessibilityNodeInfo().getParent();
-        return parent != null ? new UiObject2(getDevice(), mSelector, parent) : null;
+        return parent != null ? new UiObject2(mDevice, mSelector, parent) : null;
     }
 
     /**
      * Returns the number of child elements directly under this object.
      */
     public int getChildCount() {
+        if (isXPath) {
+            return 0;
+        }
         return getAccessibilityNodeInfo().getChildCount();
     }
 
@@ -197,7 +205,7 @@ public class UiObject2 implements Searchable {
         Point point = mDevice.getDisplaySize();
         AccessibilityNodeInfo node =
                 ByMatcher.findMatch(point, selector, getAccessibilityNodeInfo());
-        return node != null ? new UiObject2(getDevice(), selector, node) : null;
+        return node != null ? new UiObject2(mDevice, selector, node) : null;
     }
 
     /**
@@ -209,7 +217,7 @@ public class UiObject2 implements Searchable {
         for (AccessibilityNodeInfo node :
                 ByMatcher.findMatches(point, selector, getAccessibilityNodeInfo())) {
 
-            ret.add(new UiObject2(getDevice(), selector, node));
+            ret.add(new UiObject2(mDevice, selector, node));
         }
 
         return ret;
@@ -222,7 +230,13 @@ public class UiObject2 implements Searchable {
      * Returns the visible bounds of this object in screen coordinates.
      */
     public Rect getVisibleBounds() {
-        return getVisibleBounds(getAccessibilityNodeInfo());
+        Rect bounds = new Rect();
+        if (isXPath) {
+            getAccessibilityNodeInfo().getBoundsInScreen(bounds);
+        } else {
+            bounds = getVisibleBounds(getAccessibilityNodeInfo());
+        }
+        return bounds;
     }
 
     /**
@@ -246,7 +260,7 @@ public class UiObject2 implements Searchable {
         node.getBoundsInScreen(ret);
 
         // Trim any portion of the bounds that are not on the screen
-        Rect screen = new Rect(0, 0, getDevice().getDisplayWidth(), getDevice().getDisplayHeight());
+        Rect screen = new Rect(0, 0, mDevice.getDisplayWidth(), mDevice.getDisplayHeight());
         ret.intersect(screen);
 
         // On platforms that give us access to the node's window
@@ -624,14 +638,14 @@ public class UiObject2 implements Searchable {
 
         CharSequence currentText = node.getText();
         if (!text.equals(currentText)) {
-            InteractionController ic = getDevice().getInteractionController();
+            InteractionController ic = mDevice.getInteractionController();
 
             // Long click left + center
             Rect rect = getVisibleBounds();
             ic.longTapNoSync(rect.left + 20, rect.centerY());
 
             // Select existing text
-            getDevice().wait(Until.findObject(By.descContains("Select all")), 50).click();
+            mDevice.wait(Until.findObject(By.descContains("Select all")), 50).click();
             // Wait for the selection
             SystemClock.sleep(250);
             // Delete it
@@ -679,7 +693,7 @@ public class UiObject2 implements Searchable {
                     Log.w(TAG, "AccessibilityNodeInfo#performAction(ACTION_SET_SELECTION) failed");
                 }
                 // Send the delete key to clear the existing text, then send the new text
-                InteractionController ic = getDevice().getInteractionController();
+                InteractionController ic = mDevice.getInteractionController();
                 ic.sendKey(KeyEvent.KEYCODE_DEL, 0);
                 ic.sendText(text);
             }
@@ -693,19 +707,15 @@ public class UiObject2 implements Searchable {
      */
     private AccessibilityNodeInfo getAccessibilityNodeInfo() {
         if (mCachedNode == null) {
-            throw new IllegalStateException("This object has already been recycled");
+            return mDevice.getUiAutomation().getRootInActiveWindow();
         }
 
-        if (!mCachedNode.refresh()) {
-
+        if (!isXPath && !mCachedNode.refresh()) {
             if (!mCachedNode.refresh()) {
-                throw new StaleObjectException();
+                return mDevice.getUiAutomation().getRootInActiveWindow();
             }
         }
         return mCachedNode;
     }
 
-    UiDevice getDevice() {
-        return mDevice;
-    }
 }
