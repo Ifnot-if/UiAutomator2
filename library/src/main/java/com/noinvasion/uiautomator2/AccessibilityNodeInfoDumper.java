@@ -19,6 +19,7 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class AccessibilityNodeInfoDumper {
     private final static String TAG = "AccessibilityNodeInfoDumper";
@@ -26,6 +27,7 @@ public class AccessibilityNodeInfoDumper {
             android.widget.GridView.class.getName(), android.widget.GridLayout.class.getName(),
             android.widget.ListView.class.getName(), android.widget.TableLayout.class.getName()
     };
+    private static final Pattern PATTERN_BLANK = Pattern.compile("\t|\r|\n");
     private static boolean isWebView;
     private static Map<String, Integer> map;
 
@@ -262,7 +264,8 @@ public class AccessibilityNodeInfoDumper {
                 ret.append(ch);
             }
         }
-        return ret.toString();
+
+        return PATTERN_BLANK.matcher(ret.toString()).replaceAll(" ");
     }
 
     /**
