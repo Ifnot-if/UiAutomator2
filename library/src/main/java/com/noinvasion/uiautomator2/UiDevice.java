@@ -1021,8 +1021,8 @@ public class UiDevice implements Searchable {
             method.setAccessible(true);
             return method;
         } catch (Exception e) {
-            final String msg = String.format("error while getting method %s from class %s with parameter types %s", methodName, clazz, Arrays.toString(parameterTypes));
-            LogUtil.e(msg + ":" + e.getMessage());
+//            final String msg = String.format("error while getting method %s from class %s with parameter types %s", methodName, clazz, Arrays.toString(parameterTypes));
+//            LogUtil.e(msg + ":" + e.getMessage());
         }
         return null;
     }
