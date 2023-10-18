@@ -47,7 +47,7 @@ public final class Workarounds {
     }
 
     @SuppressLint("PrivateApi,DiscouragedPrivateApi")
-    private static void fillAppInfo() {
+    public static void fillAppInfo() {
         try {
             fillActivityThread();
 
@@ -75,7 +75,7 @@ public final class Workarounds {
     }
 
     @SuppressLint("PrivateApi,DiscouragedPrivateApi")
-    private static void fillAppContext() {
+    public static void fillAppContext() {
         try {
             fillActivityThread();
 

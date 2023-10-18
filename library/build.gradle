@@ -2,16 +2,21 @@ plugins {
     id 'com.android.library'
     id 'maven-publish'
 }
-group = 'com.github.Ifnot-if'
-version = '1.0'
+
+ext {
+    group = 'com.github.Ifnot-if'
+    currentCersionCode = 1
+    currentVersionName = '1.1.1'
+}
+
 android {
     compileSdkVersion 33
 
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 1
-        versionName "1.0.9"
+        versionCode currentCersionCode
+        versionName currentVersionName
     }
 
     buildTypes {
@@ -40,9 +45,9 @@ afterEvaluate {
             // Creates a Maven publication called "release".
             release(MavenPublication) {
                 from components.release
-                groupId = 'com.github.Ifnot-if'
+                groupId = group
                 artifactId = 'UiAutomator2'
-                version = '1.0.9'
+                version = currentVersionName
             }
         }
     }

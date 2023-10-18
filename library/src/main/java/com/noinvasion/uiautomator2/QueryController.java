@@ -1,6 +1,5 @@
 package com.noinvasion.uiautomator2;
 
-
 import android.app.UiAutomation;
 import android.app.UiAutomation.OnAccessibilityEventListener;
 import android.os.SystemClock;
@@ -24,46 +23,29 @@ public class QueryController {
 
     private String mLastActivityName = null;
 
-    // During a pattern selector search, the recursive pattern search
-    // methods will track their counts and indexes here.
-    private int mPatternCounter = 0;
+    String mLastTraversedText = "";
 
-    // These help show each selector's search context as it relates to the previous sub selector
-    // matched. When a compound selector fails, it is hard to tell which part of it is failing.
-    // Seeing how a selector is being parsed and which sub selector failed within a long list
-    // of compound selectors is very helpful.
-    private int mLogIndent = 0;
-
-    private String mLastTraversedText = "";
-
-    private OnAccessibilityEventListener mEventListener = new OnAccessibilityEventListener() {
-        @Override
-        public void onAccessibilityEvent(AccessibilityEvent event) {
-            synchronized (mLock) {
-                switch (event.getEventType()) {
-                    case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
-                        // don't trust event.getText(), check for nulls
-                        if (event.getText() != null && event.getText().size() > 0) {
-                            if (event.getText().get(0) != null) {
-                                mLastActivityName = event.getText().get(0).toString();
-                            }
+    private final OnAccessibilityEventListener mEventListener = event -> {
+        synchronized (mLock) {
+            switch (event.getEventType()) {
+                case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
+                    // don't trust event.getText(), check for nulls
+                    if (event.getText() != null && event.getText().size() > 0) {
+                        if (event.getText().get(0) != null) {
+                            mLastActivityName = event.getText().get(0).toString();
                         }
-                        break;
-                    case AccessibilityEvent.TYPE_VIEW_TEXT_TRAVERSED_AT_MOVEMENT_GRANULARITY:
-                        // don't trust event.getText(), check for nulls
-                        if (event.getText() != null && event.getText().size() > 0) {
-                            if (event.getText().get(0) != null) {
-                                mLastTraversedText = event.getText().get(0).toString();
-                            }
+                    }
+                    break;
+                case AccessibilityEvent.TYPE_VIEW_TEXT_TRAVERSED_AT_MOVEMENT_GRANULARITY:
+                    // don't trust event.getText(), check for nulls
+                    if (event.getText() != null && event.getText().size() > 0) {
+                        if (event.getText().get(0) != null) {
+                            mLastTraversedText = event.getText().get(0).toString();
                         }
-                        LogUtil.d("Last text selection reported: " +
-                                mLastTraversedText);
-                        break;
-                    default:
-                        break;
-                }
-                mLock.notifyAll();
+                    }
+                    break;
             }
+            mLock.notifyAll();
         }
     };
 
@@ -94,11 +76,6 @@ public class QueryController {
         synchronized (mLock) {
             mLastTraversedText = "";
         }
-    }
-
-    private void initializeNewSearch() {
-        mPatternCounter = 0;
-        mLogIndent = 0;
     }
 
     /**
@@ -170,19 +147,6 @@ public class QueryController {
         } catch (TimeoutException e) {
             LogUtil.e("Could not detect idle state.");
         }
-    }
-
-    private String formatLog(String str) {
-        StringBuilder l = new StringBuilder();
-        for (int space = 0; space < mLogIndent; space++) {
-            l.append(". . ");
-        }
-        if (mLogIndent > 0) {
-            l.append(String.format(". . [%d]: %s", mPatternCounter, str));
-        } else {
-            l.append(String.format(". . [%d]: %s", mPatternCounter, str));
-        }
-        return l.toString();
     }
 
 }

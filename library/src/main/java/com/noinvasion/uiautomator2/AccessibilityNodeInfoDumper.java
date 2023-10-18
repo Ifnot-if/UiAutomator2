@@ -42,10 +42,8 @@ public class AccessibilityNodeInfoDumper {
             serializer.startDocument("UTF-8", true);
             serializer.startTag("", "hierarchy");
 
-            Display display = device.getDisplayById();
-            Point displayPoint = new Point();
-            display.getRealSize(displayPoint);
-            serializer.attribute("", "rotation", Integer.toString(display.getRotation()));
+            Point displayPoint = device.getDisplaySize();
+            serializer.attribute("", "rotation", Integer.toString(device.getDisplayRotation()));
 
             isWebView = false;
             map = new HashMap<>();
@@ -240,11 +238,7 @@ public class AccessibilityNodeInfoDumper {
     }
 
     private static String safeCharSeqToString(CharSequence cs) {
-        if (cs == null) {
-            return "";
-        } else {
-            return stripInvalidXMLChars(cs);
-        }
+        return (cs == null) ? "" : stripInvalidXMLChars(cs);
     }
 
     private static String stripInvalidXMLChars(CharSequence cs) {
