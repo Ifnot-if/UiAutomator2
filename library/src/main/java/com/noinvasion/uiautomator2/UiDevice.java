@@ -346,7 +346,7 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public String getLastTraversedText() {
-        return getQueryController().getLastTraversedText();
+        return mQueryController.getLastTraversedText();
     }
 
     /**
@@ -356,7 +356,7 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public void clearLastTraversedText() {
-        getQueryController().clearLastTraversedText();
+        mQueryController.clearLastTraversedText();
     }
 
     /**
@@ -609,7 +609,29 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public boolean swipe(Point[] segments, int segmentSteps) {
-        return getInteractionController().swipe(segments, segmentSteps);
+        return swipe(segments, segmentSteps, false);
+    }
+
+    /**
+     * 滑动（惯性）
+     *
+     * @param segments      滑动坐标
+     * @param segmentSteps  滑动步骤
+     * @param isStopInertia 滑动惯性 true or false
+     * @return
+     */
+    public boolean swipe(Point[] segments, int segmentSteps, boolean isStopInertia) {
+        if (isStopInertia) {
+            int length = segments.length;
+            Point[] points = new Point[length + 1];
+            for (int i = 0; i < length; i++) {
+                points[i] = new Point(segments[i]);
+            }
+            points[length] = new Point(points[length - 1].x + 1, points[length - 1].y + 1);
+            return getInteractionController().swipe(points, segmentSteps);
+        } else {
+            return getInteractionController().swipe(segments, segmentSteps);
+        }
     }
 
     /**
@@ -621,7 +643,7 @@ public class UiDevice implements Searchable {
      */
     @Deprecated
     public String getCurrentActivityName() {
-        return getQueryController().getCurrentActivityName();
+        return mQueryController.getCurrentActivityName();
     }
 
     /**
@@ -631,7 +653,7 @@ public class UiDevice implements Searchable {
      * @since API Level 16
      */
     public String getCurrentPackageName() {
-        return getQueryController().getCurrentPackageName();
+        return mQueryController.getCurrentPackageName();
     }
 
 
@@ -912,7 +934,20 @@ public class UiDevice implements Searchable {
     }
 
     public Display getDisplayById() {
-        return mDisplayManager.getDisplay(0);
+//        return mDisplayManager.getDisplay(0);
+        Display display = null;
+        Display[] displays = mDisplayManager.getDisplays();
+        for (Display d : displays) {
+            Point point = new Point();
+            try {
+                d.getRealSize(point);
+            } catch (NullPointerException e) {
+                continue;
+            }
+            display = d;
+            break;
+        }
+        return display;
     }
 
     public Point getDisplaySize() {
