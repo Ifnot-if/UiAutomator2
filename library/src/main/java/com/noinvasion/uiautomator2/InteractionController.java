@@ -52,7 +52,7 @@ public class InteractionController {
     /**
      * Predicate for waiting for any of the events specified in the mask
      */
-    class WaitForAnyEventPredicate implements AccessibilityEventFilter {
+    static class WaitForAnyEventPredicate implements AccessibilityEventFilter {
         int mMask;
 
         WaitForAnyEventPredicate(int mask) {
@@ -62,12 +62,9 @@ public class InteractionController {
         @Override
         public boolean accept(AccessibilityEvent t) {
             // check current event in the list
-            if ((t.getEventType() & mMask) != 0) {
-                return true;
-            }
+            return (t.getEventType() & mMask) != 0;
 
             // no match yet
-            return false;
         }
     }
 
@@ -76,7 +73,7 @@ public class InteractionController {
      * a ctor passed list with matching events. User of this predicate must recycle
      * all populated events in the events list.
      */
-    class EventCollectingPredicate implements AccessibilityEventFilter {
+    static class EventCollectingPredicate implements AccessibilityEventFilter {
         int mMask;
         List<AccessibilityEvent> mEventsList;
 
@@ -102,7 +99,7 @@ public class InteractionController {
     /**
      * Predicate for waiting for every event specified in the mask to be matched at least once
      */
-    class WaitForAllEventPredicate implements AccessibilityEventFilter {
+    static class WaitForAllEventPredicate implements AccessibilityEventFilter {
         int mMask;
 
         WaitForAllEventPredicate(int mask) {
@@ -117,12 +114,9 @@ public class InteractionController {
                 mMask &= ~t.getEventType();
 
                 // Since we're waiting for all events to be matched at least once
-                if (mMask != 0) {
-                    return false;
-                }
+                return mMask == 0;
 
                 // all matched
-                return true;
             }
 
             // no match yet
@@ -169,19 +163,16 @@ public class InteractionController {
      */
     public boolean sendKeyAndWaitForEvent(final int keyCode, final int metaState,
                                           final int eventType, long timeout) {
-        Runnable command = new Runnable() {
-            @Override
-            public void run() {
-                final long eventTime = SystemClock.uptimeMillis();
-                KeyEvent downEvent = new KeyEvent(eventTime, eventTime, KeyEvent.ACTION_DOWN,
+        Runnable command = () -> {
+            final long eventTime = SystemClock.uptimeMillis();
+            KeyEvent downEvent = new KeyEvent(eventTime, eventTime, KeyEvent.ACTION_DOWN,
+                    keyCode, 0, metaState, KeyCharacterMap.VIRTUAL_KEYBOARD, 0, 0,
+                    InputDevice.SOURCE_KEYBOARD);
+            if (injectEventSync(downEvent)) {
+                KeyEvent upEvent = new KeyEvent(eventTime, eventTime, KeyEvent.ACTION_UP,
                         keyCode, 0, metaState, KeyCharacterMap.VIRTUAL_KEYBOARD, 0, 0,
                         InputDevice.SOURCE_KEYBOARD);
-                if (injectEventSync(downEvent)) {
-                    KeyEvent upEvent = new KeyEvent(eventTime, eventTime, KeyEvent.ACTION_UP,
-                            keyCode, 0, metaState, KeyCharacterMap.VIRTUAL_KEYBOARD, 0, 0,
-                            InputDevice.SOURCE_KEYBOARD);
-                    injectEventSync(upEvent);
-                }
+                injectEventSync(upEvent);
             }
         };
 
@@ -202,9 +193,7 @@ public class InteractionController {
 
         if (touchDown(x, y)) {
             SystemClock.sleep(REGULAR_CLICK_LENGTH);
-            if (touchUp(x, y)) {
-                return true;
-            }
+            return touchUp(x, y);
         }
         return false;
     }
@@ -256,13 +245,10 @@ public class InteractionController {
      * @return Runnable
      */
     private Runnable clickRunnable(final int x, final int y) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                if (touchDown(x, y)) {
-                    SystemClock.sleep(REGULAR_CLICK_LENGTH);
-                    touchUp(x, y);
-                }
+        return () -> {
+            if (touchDown(x, y)) {
+                SystemClock.sleep(REGULAR_CLICK_LENGTH);
+                touchUp(x, y);
             }
         };
     }
@@ -276,13 +262,10 @@ public class InteractionController {
      * @return Runnable
      */
     private Runnable longTapRunnable(final int x, final int y) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                if (touchDown(x, y)) {
-                    SystemClock.sleep(ViewConfiguration.getLongPressTimeout());
-                    touchUp(x, y);
-                }
+        return () -> {
+            if (touchDown(x, y)) {
+                SystemClock.sleep(ViewConfiguration.getLongPressTimeout());
+                touchUp(x, y);
             }
         };
     }
@@ -574,9 +557,7 @@ public class InteractionController {
             KeyEvent upEvent = new KeyEvent(eventTime, eventTime, KeyEvent.ACTION_UP,
                     keyCode, 0, metaState, KeyCharacterMap.VIRTUAL_KEYBOARD, 0, 0,
                     InputDevice.SOURCE_KEYBOARD);
-            if (injectEventSync(upEvent)) {
-                return true;
-            }
+            return injectEventSync(upEvent);
         }
         return false;
     }
@@ -676,7 +657,7 @@ public class InteractionController {
      * @return true if the screen is ON else false
      */
     public boolean isScreenOn() {
-        PowerManager pm = (PowerManager)FakeContext.get().getBaseContext().getSystemService(Service.POWER_SERVICE);
+        PowerManager pm = (PowerManager) FakeContext.get().getBaseContext().getSystemService(Service.POWER_SERVICE);
         return pm.isScreenOn();
     }
 

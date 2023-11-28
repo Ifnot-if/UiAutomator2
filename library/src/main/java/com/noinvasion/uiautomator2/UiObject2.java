@@ -26,12 +26,12 @@ public class UiObject2 implements Searchable {
 
     private static final String TAG = UiObject2.class.getSimpleName();
 
-    private UiDevice mDevice;
-    private Gestures mGestures;
-    private GestureController mGestureController;
-    private BySelector mSelector;  // Hold this mainly for debugging
+    private final UiDevice mDevice;
+    private final Gestures mGestures;
+    private final GestureController mGestureController;
+    private final BySelector mSelector;  // Hold this mainly for debugging
     private AccessibilityNodeInfo mCachedNode;
-    private DisplayMetrics mDisplayMetrics;
+    private final DisplayMetrics mDisplayMetrics;
 
     // Margins
     private int mMarginLeft = 5;
@@ -274,7 +274,7 @@ public class UiObject2 implements Searchable {
         }
 
         // Find the visible bounds of our first scrollable ancestor
-        AccessibilityNodeInfo ancestor = null;
+        AccessibilityNodeInfo ancestor;
         for (ancestor = node.getParent(); ancestor != null; ancestor = ancestor.getParent()) {
             // If this ancestor is scrollable
             if (ancestor.isScrollable()) {

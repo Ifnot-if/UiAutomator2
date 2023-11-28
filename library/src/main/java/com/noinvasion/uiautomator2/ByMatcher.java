@@ -4,6 +4,8 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -351,11 +353,12 @@ class ByMatcher {
          * Returns a new list obtained by prepending {@code data} to {@code rest}.
          */
         public static <T> SinglyLinkedList<T> prepend(T data, SinglyLinkedList<T> rest) {
-            return new SinglyLinkedList<>(new Node<T>(data, rest.mHead));
+            return new SinglyLinkedList<>(new Node<>(data, rest.mHead));
         }
 
+        @NonNull
         public Iterator<T> iterator() {
-            return new Iterator<T>() {
+            return new Iterator<>() {
                 private Node<T> mNext = mHead;
 
                 @Override

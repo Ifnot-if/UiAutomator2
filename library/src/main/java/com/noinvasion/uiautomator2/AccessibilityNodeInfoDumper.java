@@ -1,14 +1,16 @@
 package com.noinvasion.uiautomator2;
 
 import android.annotation.SuppressLint;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Xml;
-import android.view.Display;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
+import android.widget.GridLayout;
+import android.widget.GridView;
+import android.widget.ListView;
+import android.widget.TableLayout;
 
 import androidx.annotation.DoNotInline;
 import androidx.annotation.RequiresApi;
@@ -24,8 +26,8 @@ import java.util.regex.Pattern;
 public class AccessibilityNodeInfoDumper {
     private final static String TAG = "AccessibilityNodeInfoDumper";
     private static final String[] NAF_EXCLUDED_CLASSES = new String[]{
-            android.widget.GridView.class.getName(), android.widget.GridLayout.class.getName(),
-            android.widget.ListView.class.getName(), android.widget.TableLayout.class.getName()
+            GridView.class.getName(), GridLayout.class.getName(),
+            ListView.class.getName(), TableLayout.class.getName()
     };
     private static final Pattern PATTERN_BLANK = Pattern.compile("\t|\r|\n");
     private static boolean isWebView;
@@ -42,13 +44,13 @@ public class AccessibilityNodeInfoDumper {
             serializer.startDocument("UTF-8", true);
             serializer.startTag("", "hierarchy");
 
-            Point displayPoint = device.getDisplaySize();
-            serializer.attribute("", "rotation", Integer.toString(device.getDisplayRotation()));
+            DisplayInfo displayInfo = device.getDisplayInfo();
+            serializer.attribute("", "rotation", Integer.toString(displayInfo.getRotation()));
 
             isWebView = false;
             map = new HashMap<>();
             for (AccessibilityNodeInfo root : device.getWindowRoots()) {
-                dumpNodeRec(root, serializer, 0, displayPoint.x, displayPoint.y, 1, 1, 1);
+                dumpNodeRec(root, serializer, 0, displayInfo.getSize().x, displayInfo.getSize().y, 1, 1, 1);
             }
 
             serializer.endTag("", "hierarchy");
@@ -125,6 +127,9 @@ public class AccessibilityNodeInfoDumper {
         serializer.attribute("", "bounds", getVisibleBoundsInScreen(
                 node, width, height).toShortString());
 
+        if (Build.VERSION.SDK_INT >= 24)
+            serializer.attribute("", "drawing-order",
+                    Integer.toString(Api24Impl.getDrawingOrder(node)));
         if (Build.VERSION.SDK_INT >= 26) {
             serializer.attribute("", "hint", safeCharSeqToString(Api26Impl.getHintText(node)));
         }
@@ -296,6 +301,14 @@ public class AccessibilityNodeInfoDumper {
         return nodeRect;
     }
 
+    @RequiresApi(24)
+    static class Api24Impl {
+        @DoNotInline
+        static int getDrawingOrder(AccessibilityNodeInfo accessibilityNodeInfo) {
+            return accessibilityNodeInfo.getDrawingOrder();
+        }
+    }
+
     @RequiresApi(26)
     static class Api26Impl {
         @DoNotInline
@@ -310,12 +323,7 @@ public class AccessibilityNodeInfoDumper {
         @DoNotInline
         static int getDisplayId(AccessibilityNodeInfo accessibilityNodeInfo) {
             AccessibilityWindowInfo windowInfo = accessibilityNodeInfo.getWindow();
-            if (windowInfo == null) {
-                LogUtil.d("Api30Impl windowInfo == null , return 0");
-                return 0;
-            } else {
-                return windowInfo.getDisplayId();
-            }
+            return (windowInfo == null) ? 0 : windowInfo.getDisplayId();
         }
     }
 

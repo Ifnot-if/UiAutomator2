@@ -36,7 +36,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -91,7 +90,11 @@ public class UiDevice implements Searchable {
         // Enable multi-window support for API level 21 and up
         // Subscribe to window information
         AccessibilityServiceInfo info = uiAutomation.getServiceInfo();
-        info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS | AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS | AccessibilityServiceInfo.FLAG_REQUEST_ENHANCED_WEB_ACCESSIBILITY | AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS | AccessibilityServiceInfo.DEFAULT;
+        info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+                | AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
+                | AccessibilityServiceInfo.FLAG_REQUEST_ENHANCED_WEB_ACCESSIBILITY
+                | AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+                | AccessibilityServiceInfo.DEFAULT;
 
         uiAutomation.setServiceInfo(info);
 
@@ -675,7 +678,7 @@ public class UiDevice implements Searchable {
      * @since API Level 17
      */
     public int getDisplayRotation() {
-        return getDisplayById().getRotation();
+        return getDisplayInfo().getRotation();
     }
 
     /**
@@ -934,27 +937,23 @@ public class UiDevice implements Searchable {
     }
 
     public Display getDisplayById() {
-//        return mDisplayManager.getDisplay(0);
-        Display display = null;
-        Display[] displays = mDisplayManager.getDisplays();
-        for (Display d : displays) {
-            Point point = new Point();
-            try {
-                d.getRealSize(point);
-            } catch (NullPointerException e) {
-                continue;
-            }
-            display = d;
-            break;
-        }
-        return display;
+        return getDisplayById(0);
+    }
+
+    Display getDisplayById(int displayId) {
+        return mDisplayManager.getDisplay(displayId);
+    }
+
+    public DisplayInfo getDisplayInfo() {
+        return getDisplayInfo(0);
+    }
+
+    public DisplayInfo getDisplayInfo(int displayId) {
+        return ServiceManager.getInstance().getDisplayManager().getDisplayInfo(displayId);
     }
 
     public Point getDisplaySize() {
-        Point p = new Point();
-        Display display = getDisplayById();
-        display.getRealSize(p);
-        return p;
+        return getDisplayInfo().getSize();
     }
 
     /**

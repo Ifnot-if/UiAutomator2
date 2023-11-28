@@ -30,25 +30,13 @@ class GestureController {
      * Comparator for sorting PointerGestures by start times.
      */
     private static final Comparator<PointerGesture> START_TIME_COMPARATOR =
-            new Comparator<PointerGesture>() {
-
-                @Override
-                public int compare(PointerGesture o1, PointerGesture o2) {
-                    return (int) (o1.delay() - o2.delay());
-                }
-            };
+            (o1, o2) -> (int) (o1.delay() - o2.delay());
 
     /**
      * Comparator for sorting PointerGestures by end times.
      */
     private static final Comparator<PointerGesture> END_TIME_COMPARATOR =
-            new Comparator<PointerGesture>() {
-
-                @Override
-                public int compare(PointerGesture o1, PointerGesture o2) {
-                    return (int) ((o1.delay() + o2.duration()) - (o2.delay() + o2.duration()));
-                }
-            };
+            (o1, o2) -> (int) ((o1.delay() + o2.duration()) - (o2.delay() + o2.duration()));
 
 
     // Private constructor.
@@ -223,7 +211,7 @@ class GestureController {
      * Runnable wrapper around a {@link GestureController#performGesture} call.
      */
     private class GestureRunnable implements Runnable {
-        private PointerGesture[] mGestures;
+        private final PointerGesture[] mGestures;
 
         public GestureRunnable(PointerGesture[] gestures) {
             mGestures = gestures;

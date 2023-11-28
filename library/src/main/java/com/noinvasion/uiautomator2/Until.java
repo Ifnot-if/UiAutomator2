@@ -18,7 +18,7 @@ public class Until {
      * can be found.
      */
     public static SearchCondition<Boolean> gone(final BySelector selector) {
-        return new SearchCondition<Boolean>() {
+        return new SearchCondition<>() {
             @Override
             Boolean apply(Searchable container) {
                 return !container.hasObject(selector);
@@ -31,7 +31,7 @@ public class Until {
      * selector can be found.
      */
     public static SearchCondition<Boolean> hasObject(final BySelector selector) {
-        return new SearchCondition<Boolean>() {
+        return new SearchCondition<>() {
             @Override
             Boolean apply(Searchable container) {
                 return container.hasObject(selector);
@@ -44,7 +44,7 @@ public class Until {
      * selector can be found. The condition will return the first matching element.
      */
     public static SearchCondition<UiObject2> findObject(final BySelector selector) {
-        return new SearchCondition<UiObject2>() {
+        return new SearchCondition<>() {
             @Override
             UiObject2 apply(Searchable container) {
                 return container.findObject(selector);
@@ -57,7 +57,7 @@ public class Until {
      * selector can be found. The condition will return all matching elements.
      */
     public static SearchCondition<List<UiObject2>> findObjects(final BySelector selector) {
-        return new SearchCondition<List<UiObject2>>() {
+        return new SearchCondition<>() {
             @Override
             List<UiObject2> apply(Searchable container) {
                 List<UiObject2> ret = container.findObjects(selector);
@@ -75,7 +75,7 @@ public class Until {
      * @param isCheckable Whether the object should be checkable to satisfy this condition.
      */
     public static UiObject2Condition<Boolean> checkable(final boolean isCheckable) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 return object.isCheckable() == isCheckable;
@@ -89,7 +89,7 @@ public class Until {
      * @param isChecked Whether the object should be checked to satisfy this condition.
      */
     public static UiObject2Condition<Boolean> checked(final boolean isChecked) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 return object.isChecked() == isChecked;
@@ -103,7 +103,7 @@ public class Until {
      * @param isClickable Whether the object should be clickable to satisfy this condition.
      */
     public static UiObject2Condition<Boolean> clickable(final boolean isClickable) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 return object.isClickable() == isClickable;
@@ -117,7 +117,7 @@ public class Until {
      * @param isEnabled Whether the object should be enabled to satisfy this condition.
      */
     public static UiObject2Condition<Boolean> enabled(final boolean isEnabled) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 return object.isEnabled() == isEnabled;
@@ -131,7 +131,7 @@ public class Until {
      * @param isFocusable Whether the object should be focusable to satisfy this condition.
      */
     public static UiObject2Condition<Boolean> focusable(final boolean isFocusable) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 return object.isFocusable() == isFocusable;
@@ -145,7 +145,7 @@ public class Until {
      * @param isFocused Whether the object should be focused to satisfy this condition.
      */
     public static UiObject2Condition<Boolean> focused(final boolean isFocused) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 return object.isFocused() == isFocused;
@@ -159,7 +159,7 @@ public class Until {
      * @param isLongClickable Whether the object should be long clickable to satisfy this condition.
      */
     public static UiObject2Condition<Boolean> longClickable(final boolean isLongClickable) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 return object.isLongClickable() == isLongClickable;
@@ -173,7 +173,7 @@ public class Until {
      * @param isScrollable Whether the object should be scrollable to satisfy this condition.
      */
     public static UiObject2Condition<Boolean> scrollable(final boolean isScrollable) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 return object.isScrollable() == isScrollable;
@@ -187,7 +187,7 @@ public class Until {
      * @param isSelected Whether the object should be selected to satisfy this condition.
      */
     public static UiObject2Condition<Boolean> selected(final boolean isSelected) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 return object.isSelected() == isSelected;
@@ -200,7 +200,7 @@ public class Until {
      * regex.
      */
     public static UiObject2Condition<Boolean> descMatches(final Pattern regex) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 String desc = object.getContentDescription();
@@ -253,7 +253,7 @@ public class Until {
      * Returns a condition that is satisfied when the object's text value matches the given regex.
      */
     public static UiObject2Condition<Boolean> textMatches(final Pattern regex) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 String text = object.getText();
@@ -270,7 +270,7 @@ public class Until {
     }
 
     public static UiObject2Condition<Boolean> textNotEquals(final String text) {
-        return new UiObject2Condition<Boolean>() {
+        return new UiObject2Condition<>() {
             @Override
             Boolean apply(UiObject2 object) {
                 return !text.equals(object.getText());
@@ -316,7 +316,7 @@ public class Until {
      * Returns a condition that depends on a new window having appeared.
      */
     public static EventCondition<Boolean> newWindow() {
-        return new EventCondition<Boolean>() {
+        return new EventCondition<>() {
             private int mMask = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED |
                     AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
 
@@ -340,7 +340,7 @@ public class Until {
      * @param direction The direction of the scroll.
      */
     public static EventCondition<Boolean> scrollFinished(final Direction direction) {
-        return new EventCondition<Boolean>() {
+        return new EventCondition<>() {
             private final Direction mDirection = direction;
             private Boolean mResult = null;
 

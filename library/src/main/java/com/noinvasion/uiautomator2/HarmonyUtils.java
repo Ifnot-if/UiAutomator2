@@ -61,7 +61,7 @@ public class HarmonyUtils {
     private static String getProp(String property) {
         String value = "";
         try {
-            Class spClz = Class.forName("android.os.SystemProperties");
+            Class<?> spClz = Class.forName("android.os.SystemProperties");
             Method method = spClz.getDeclaredMethod("get", String.class);
             value = (String) method.invoke(spClz, property);
         } catch (Throwable e) {
@@ -83,11 +83,11 @@ public class HarmonyUtils {
 
         ClassLoader classLoader = mContext.getClassLoader();
         try {
-            Class ohosApplication = Class.forName("ohos.app.Application");
+            Class<?> ohosApplication = Class.forName("ohos.app.Application");
             Object mOhosApplication = ohosApplication.newInstance();
 
-            Class contextDeal = Class.forName("ohos.app.ContextDeal");
-            Constructor contextDealConstructor = contextDeal.getConstructor(Context.class, ClassLoader.class);
+            Class<?> contextDeal = Class.forName("ohos.app.ContextDeal");
+            Constructor<?> contextDealConstructor = contextDeal.getConstructor(Context.class, ClassLoader.class);
             Object mContextDeal = contextDealConstructor.newInstance(mContext, classLoader);
 
             Method setApplication;
@@ -109,7 +109,7 @@ public class HarmonyUtils {
             if (bundleInfo != null) {
 
                 Method getHapModuleInfo = bundleInfo.getClass().getMethod("getHapModuleInfo", String.class);
-                HapModuleInfo moduleInfo = null;
+                HapModuleInfo moduleInfo;
                 if (!TextUtils.isEmpty(bundleInfo.getEntryModuleName())) {
                     moduleInfo = (HapModuleInfo) getHapModuleInfo.invoke(bundleInfo, bundleInfo.getEntryModuleName());
                 } else {

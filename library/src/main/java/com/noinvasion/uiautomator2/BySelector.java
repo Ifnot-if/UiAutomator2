@@ -1,5 +1,7 @@
 package com.noinvasion.uiautomator2;
 
+import androidx.annotation.NonNull;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -626,6 +628,7 @@ public class BySelector {
      * "BySelector [&lt;KEY&gt;='&lt;VALUE&gt; ... ]". Each criteria is listed as a key-value pair
      * where the key is the name of the criteria expressed in all caps (e.g. CLAZZ, RES, etc).
      */
+    @NonNull
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("BySelector [");

@@ -10,16 +10,16 @@ interface Searchable {
     /**
      * Returns whether there is a match for the given {@code selector} criteria.
      */
-    public boolean hasObject(BySelector selector);
+    boolean hasObject(BySelector selector);
 
     /**
      * Returns the first object to match the {@code selector} criteria.
      */
-    public UiObject2 findObject(BySelector selector);
+    UiObject2 findObject(BySelector selector);
 
     /**
      * Returns all objects that match the {@code selector} criteria.
      */
-    public List<UiObject2> findObjects(BySelector selector);
+    List<UiObject2> findObjects(BySelector selector);
 }
 
