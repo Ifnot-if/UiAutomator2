@@ -2,6 +2,7 @@ package com.noinvasion.uiautomator2;
 
 
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.annotation.SuppressLint;
 import android.app.Instrumentation;
 import android.app.UiAutomation;
 import android.app.UiAutomation.AccessibilityEventFilter;
@@ -36,6 +37,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +50,7 @@ import java.util.concurrent.TimeoutException;
  *
  * @since API Level 16
  */
-public class UiDevice implements Searchable {
+public class UiDevice implements Searchable, ClipboardListener {
 
     // Sometimes HOME and BACK key presses will generate no events if already on
     // home page or there is nothing to go back to, Set low timeouts.
@@ -69,6 +71,8 @@ public class UiDevice implements Searchable {
     // Get wait functionality from a mixin
     private final WaitMixin<UiDevice> mWaitMixin = new WaitMixin<>(this);
 
+    private String clipText;
+
     /**
      * A forward-looking API Level for development platform builds
      * <p>
@@ -76,11 +80,6 @@ public class UiDevice implements Searchable {
      * API Level + 1 on development platform build
      */
     static final int API_LEVEL_ACTUAL = Build.VERSION.SDK_INT + ("REL".equals(Build.VERSION.CODENAME) ? 0 : 1);
-
-    /**
-     * @deprecated Should use {@link UiDevice} instead.
-     */
-    @Deprecated
 
     /**
      * Private constructor. Clients should use {@link UiDevice}.
@@ -230,6 +229,12 @@ public class UiDevice implements Searchable {
         }
 
         return condition.getResult();
+    }
+
+    @Override
+    public void onClipboardTextChanged(String text) {
+        clipText = text;
+        LogUtil.d("onClipboardTextChanged:" + clipText);
     }
 
     /**
@@ -502,10 +507,9 @@ public class UiDevice implements Searchable {
      * Simulates a short press on the Recent Apps button.
      *
      * @return true if successful, else return false
-     * @throws RemoteException
      * @since API Level 16
      */
-    public boolean pressRecentApps() throws RemoteException {
+    public boolean pressRecentApps() {
         return getInteractionController().toggleRecentApps();
     }
 
@@ -571,11 +575,7 @@ public class UiDevice implements Searchable {
      * to determine smoothness and speed. Each step execution is throttled to 5ms
      * per step. So for a 100 steps, the swipe will take about 1/2 second to complete.
      *
-     * @param startX
-     * @param startY
-     * @param endX
-     * @param endY
-     * @param steps  is the number of move steps sent to the system
+     * @param steps is the number of move steps sent to the system
      * @return false if the operation fails or the coordinates are invalid
      * @since API Level 16
      */
@@ -621,7 +621,6 @@ public class UiDevice implements Searchable {
      * @param segments      滑动坐标
      * @param segmentSteps  滑动步骤
      * @param isStopInertia 滑动惯性 true or false
-     * @return
      */
     public boolean swipe(Point[] segments, int segmentSteps, boolean isStopInertia) {
         if (isStopInertia) {
@@ -685,10 +684,9 @@ public class UiDevice implements Searchable {
      * Disables the sensors and freezes the device rotation at its
      * current rotation state.
      *
-     * @throws RemoteException
      * @since API Level 16
      */
-    public void freezeRotation() throws RemoteException {
+    public void freezeRotation() {
         getInteractionController().freezeRotation();
     }
 
@@ -696,10 +694,8 @@ public class UiDevice implements Searchable {
      * Re-enables the sensors and un-freezes the device rotation allowing its contents
      * to rotate with the device physical rotation. During a test execution, it is best to
      * keep the device frozen in a specific orientation until the test case execution has completed.
-     *
-     * @throws RemoteException
      */
-    public void unfreezeRotation() throws RemoteException {
+    public void unfreezeRotation() {
         getInteractionController().unfreezeRotation();
     }
 
@@ -710,10 +706,9 @@ public class UiDevice implements Searchable {
      * If you want to un-freeze the rotation and re-enable the sensors
      * see {@link #unfreezeRotation()}.
      *
-     * @throws RemoteException
      * @since API Level 17
      */
-    public void setOrientationLeft() throws RemoteException {
+    public void setOrientationLeft() {
         getInteractionController().setRotationLeft();
         // we don't need to check for idle on entry for this. We'll sync on exit
     }
@@ -725,10 +720,9 @@ public class UiDevice implements Searchable {
      * If you want to un-freeze the rotation and re-enable the sensors
      * see {@link #unfreezeRotation()}.
      *
-     * @throws RemoteException
      * @since API Level 17
      */
-    public void setOrientationRight() throws RemoteException {
+    public void setOrientationRight() {
         getInteractionController().setRotationRight();
         // we don't need to check for idle on entry for this. We'll sync on exit
     }
@@ -740,10 +734,9 @@ public class UiDevice implements Searchable {
      * If you want to un-freeze the rotation and re-enable the sensors
      * see {@link #unfreezeRotation()}.
      *
-     * @throws RemoteException
      * @since API Level 17
      */
-    public void setOrientationNatural() throws RemoteException {
+    public void setOrientationNatural() {
         getInteractionController().setRotationNatural();
         // we don't need to check for idle on entry for this. We'll sync on exit
     }
@@ -755,7 +748,6 @@ public class UiDevice implements Searchable {
      * If the screen was OFF and it just got turned ON, this method will insert a 500ms delay
      * to allow the device time to wake up and accept input.
      *
-     * @throws RemoteException
      * @since API Level 16
      */
     public void wakeUp() throws RemoteException {
@@ -770,10 +762,9 @@ public class UiDevice implements Searchable {
      * Checks the power manager if the screen is ON.
      *
      * @return true if the screen is ON else false
-     * @throws RemoteException
      * @since API Level 16
      */
-    public boolean isScreenOn() throws RemoteException {
+    public boolean isScreenOn() {
         return getInteractionController().isScreenOn();
     }
 
@@ -781,7 +772,6 @@ public class UiDevice implements Searchable {
      * This method simply presses the power button if the screen is ON else
      * it does nothing if the screen is already OFF.
      *
-     * @throws RemoteException
      * @since API Level 16
      */
     public void sleep() throws RemoteException {
@@ -823,7 +813,7 @@ public class UiDevice implements Searchable {
             @Override
             public boolean accept(AccessibilityEvent t) {
                 if (t.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-                    return packageName == null || packageName.equals(t.getPackageName());
+                    return packageName == null || packageName.contentEquals(t.getPackageName());
                 }
                 return false;
             }
@@ -892,7 +882,7 @@ public class UiDevice implements Searchable {
         intent.addCategory(Intent.CATEGORY_HOME);
         PackageManager pm = FakeContext.get().getBaseContext().getPackageManager();
         ResolveInfo resolveInfo = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
-        return resolveInfo.activityInfo.packageName;
+        return resolveInfo != null ? resolveInfo.activityInfo.packageName : null;
     }
 
     public String getLaunchIntentForPackage(String packageName) {
@@ -920,7 +910,6 @@ public class UiDevice implements Searchable {
      *
      * @param cmd the command to run
      * @return the standard output of the command
-     * @throws IOException
      * @since API Level 21
      */
     public String executeShellCommand(String cmd) throws IOException {
@@ -928,7 +917,7 @@ public class UiDevice implements Searchable {
         byte[] buf = new byte[512];
         int bytesRead;
         FileInputStream fis = new ParcelFileDescriptor.AutoCloseInputStream(pfd);
-        StringBuffer stdout = new StringBuffer();
+        StringBuilder stdout = new StringBuilder();
         while ((bytesRead = fis.read(buf)) != -1) {
             stdout.append(new String(buf, 0, bytesRead));
         }
@@ -991,11 +980,26 @@ public class UiDevice implements Searchable {
     }
 
     /**
+     * 设置剪切板内容
+     */
+    public boolean setClipText(String text) {
+        ClipboardManager manager = ServiceManager.getInstance().getClipboardManager();
+        return manager != null && manager.setText(text);
+    }
+
+    /**
+     * 获取剪切板内容
+     */
+    public String getClipText() {
+        return clipText;
+    }
+
+    /**
      * 清理缓存
      */
     private static void clearAccessibilityCache() {
         try {
-            final Class<?> c = Class.forName("android.view.accessibility.AccessibilityInteractionClient");
+            @SuppressLint("PrivateApi") final Class<?> c = Class.forName("android.view.accessibility.AccessibilityInteractionClient");
             final Method getInstance = method(c, "getInstance");
             if (getInstance != null) {
                 final Object instance = getInstance.invoke(null);
@@ -1020,8 +1024,8 @@ public class UiDevice implements Searchable {
             method.setAccessible(true);
             return method;
         } catch (Exception e) {
-//            final String msg = String.format("error while getting method %s from class %s with parameter types %s", methodName, clazz, Arrays.toString(parameterTypes));
-//            LogUtil.e(msg + ":" + e.getMessage());
+            final String msg = String.format("error while getting method %s from class %s with parameter types %s", methodName, clazz, Arrays.toString(parameterTypes));
+            LogUtil.e(msg + ":" + e.getMessage());
         }
         return null;
     }

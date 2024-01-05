@@ -10,11 +10,11 @@ ext {
 }
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 31
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 31
         versionCode currentCersionCode
         versionName currentVersionName
     }

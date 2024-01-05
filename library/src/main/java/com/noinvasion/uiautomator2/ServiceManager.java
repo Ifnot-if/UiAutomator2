@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 public final class ServiceManager {
     private final Method getServiceMethod;
     private DisplayManager displayManager;
+    private ClipboardManager clipboardManager;
 
     private static class SingletonHolder {
         private static final ServiceManager INSTANCE = new ServiceManager();
@@ -42,5 +43,16 @@ public final class ServiceManager {
             displayManager = new DisplayManager(getService("display", "android.hardware.display.IDisplayManager"));
         }
         return displayManager;
+    }
+
+    public ClipboardManager getClipboardManager() {
+        if (clipboardManager == null) {
+            IInterface clipboard = getService("clipboard", "android.content.IClipboard");
+            if (clipboard == null) {
+                return null;
+            }
+            clipboardManager = new ClipboardManager(clipboard);
+        }
+        return clipboardManager;
     }
 }

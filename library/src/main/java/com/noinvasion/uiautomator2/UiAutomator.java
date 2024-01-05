@@ -62,7 +62,7 @@ public class UiAutomator {
                 LogUtil.d("connect success");
             } catch (Exception e) {
                 // 连接失败时记录异常信息并断开服务
-                LogUtil.e("connect", e);
+                LogUtil.d("connect", e);
                 disconnect();
             }
         }
@@ -80,7 +80,7 @@ public class UiAutomator {
                 LogUtil.d("disconnect success");
             } catch (Exception e) {
                 // 断开失败时记录异常信息
-                LogUtil.e("disconnect", e);
+                LogUtil.d("disconnect", e);
             }
             // 清空UiAutomation对象
             uiAutomation = null;

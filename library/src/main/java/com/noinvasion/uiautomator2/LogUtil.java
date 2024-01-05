@@ -34,6 +34,15 @@ public final class LogUtil {
         }
     }
 
+    public static void d(String message, Throwable throwable) {
+        if (isEnabled(Level.DEBUG)) {
+            System.out.println(PREFIX + "DEBUG: " + message);
+            if (throwable != null) {
+                throwable.printStackTrace();
+            }
+        }
+    }
+
     public static void e(String message, Throwable throwable) {
         if (isEnabled(Level.ERROR)) {
             System.out.println(PREFIX + "ERROR: " + message);
